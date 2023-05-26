@@ -1,1 +1,1 @@
-from atsign import AtSign
+from src.common.atsign import AtSign

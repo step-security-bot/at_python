@@ -8,7 +8,7 @@ class AtSign:
         if self.atsign == "@":
             raise ValueError(f"'{self.atsign}' is not a valid atSign")
 
-        self.without_prefix = self.atsign[1:]
+        self.without_prefix_str = self.atsign[1:]
 
     def without_prefix(self):
         """
@@ -19,7 +19,7 @@ class AtSign:
         str
             An atsign without prefix (e.g. "@alice " --> "alice").
         """
-        return self.without_prefix
+        return self.without_prefix_str
 
     def __str__(self):
         return self.atsign

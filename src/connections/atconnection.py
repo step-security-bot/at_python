@@ -2,7 +2,7 @@ import socket
 import ssl
 from abc import ABC, abstractmethod
 
-from common.exception import AtException
+from src.common.exception import AtException
 
 
 class AtConnection(ABC):
@@ -27,6 +27,7 @@ class AtConnection(ABC):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.secure_root_socket = None
         self.verbose = verbose
+        self.connected = False
 
     def __str__(self):
         """

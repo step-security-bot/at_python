@@ -1,16 +1,18 @@
 class Address:
     def __init__(self, host, port):
-        self.host = host
-        self.port = port
+        self._host = host
+        self._port = port
     
-    def get_host(self):
-        return self.host
+    @property
+    def host(self):
+        return self._host
     
-    def get_port(self):
-        return self.port
+    @property
+    def port(self):
+        return self._port
 
     def __str__(self):
-        return self.host + ":" + str(self.port)
+        return self._host + ":" + str(self._port)
     
     @staticmethod
     def from_string(host_and_port):

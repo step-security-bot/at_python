@@ -22,14 +22,14 @@ class AtSecondaryConnection(AtConnection):
         verbose : bool, optional
             Indicates if verbose output is enabled (default is False).
         """
-        super().__init__(address.get_host(), address.get_port(), context, verbose)
+        super().__init__(address.host, address.port, context, verbose)
 
     def connect(self):
         """
         Establish a connection to the secondary server.
         """
         super().connect()
-        if self.verbose:
+        if self._verbose:
             print("Secondary Connection Successful")
 
     def parse_raw_response(self, raw_response:str):

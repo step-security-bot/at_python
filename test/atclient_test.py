@@ -9,10 +9,8 @@ class AtClientTest(unittest.TestCase):
     def test_atsign_pkam_authenticate(self):
         """Test atKeys Loading"""
         atsign = AtSign("27barracuda")
-        keys = KeysUtil.load_keys(atsign)
         atclient = AtClient(atsign, verbose=AtClientTest.verbose)
-        authenticated = atclient.pkam_authenticate(keys)
-        self.assertTrue(authenticated)
+        self.assertTrue(atclient.is_authenticated())
     
     
 if __name__ == '__main__':

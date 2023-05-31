@@ -20,14 +20,14 @@ class AtConnection(ABC):
         - context (ssl.SSLContext): The SSL context for secure connections.
         - verbose (bool, optional): Indicates if verbose output is enabled (default is False).
         """
-        self.host = host
-        self.port = port
-        self.context = context
-        self.addr_info = socket.getaddrinfo(host, port)[0][-1]
+        self._host = host
+        self._port = port
+        self._context = context
+        self._addr_info = socket.getaddrinfo(host, port)[0][-1]
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.secure_root_socket = None
-        self.verbose = verbose
-        self.connected = False
+        self._secure_root_socket = None
+        self._verbose = verbose
+        self._connected = False
 
     def __str__(self):
         """
@@ -36,7 +36,7 @@ class AtConnection(ABC):
         Returns:
         - str: A string representation of the AtConnection object in the format "host:port".
         """
-        return f"{self.host}:{self.port}"
+        return f"{self._host}:{self._port}"
 
     def write(self, data: str):
         """
@@ -45,7 +45,7 @@ class AtConnection(ABC):
         Parameters:
         - data (str): The data to be written to the socket.
         """
-        self.secure_root_socket.write(data.encode())
+        self._secure_root_socket.write(data.encode())
 
     def read(self):
         """
@@ -55,7 +55,7 @@ class AtConnection(ABC):
         - str: The data read from the socket.
         """
         response = b''
-        data = self.secure_root_socket.read(2048)
+        data = self._secure_root_socket.read(2048)
         response += data
         return response.decode()
 
@@ -66,26 +66,26 @@ class AtConnection(ABC):
         Returns:
         - bool: True if the connection is established, False otherwise.
         """
-        return self.connected
+        return self._connected
 
     def connect(self):
         """
         Establish a connection to the server. Throws IOException
         """
-        if not self.connected:
-            self._socket.connect(self.addr_info)
-            self.secure_root_socket = self.context.wrap_socket(
-                self._socket, server_hostname=self.host, do_handshake_on_connect=True
+        if not self._connected:
+            self._socket.connect(self._addr_info)
+            self._secure_root_socket = self._context.wrap_socket(
+                self._socket, server_hostname=self._host, do_handshake_on_connect=True
             )
-            self.connected = True
+            self._connected = True
             self.read()
 
     def disconnect(self):
         """
         Close the socket connection.
         """
-        self.secure_root_socket.close()
-        self.connected = False
+        self._secure_root_socket.close()
+        self._connected = False
 
     @abstractmethod
     def parse_raw_response(self, raw_response:str):
@@ -114,12 +114,12 @@ class AtConnection(ABC):
                 command += "\n"
             self.write(command)
 
-            if self.verbose:
+            if self._verbose:
                 print(f"\tSENT: {repr(command.strip())}")
 
             if read_the_response:
                 raw_response = self.read()
-                if self.verbose:
+                if self._verbose:
                     print(f"\tRCVD: {repr(raw_response)}")
 
                 return self.parse_raw_response(raw_response)
@@ -136,5 +136,5 @@ class AtConnection(ABC):
                     traceback.print_exc()
                     raise AtException(f"Failed to reconnect after original exception {str(first)}: ", second)
             else:
-                self.connected = False
+                self._connected = False
                 raise AtException(str(first))

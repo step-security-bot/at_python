@@ -55,10 +55,6 @@ class AtRootConnection(AtConnection):
         if AtRootConnection.__instance is not None:
             raise Exception("Singleton class - use AtRootConnection.get_instance() instead")
         else:
-            self.host = host
-            self.port = port
-            self.context = context
-            self.verbose = verbose
             AtRootConnection.__instance = self
             super().__init__(host, port, context, verbose)
 
@@ -67,7 +63,7 @@ class AtRootConnection(AtConnection):
         Establish a connection to the root server.
         """
         super().connect()
-        if self.verbose:
+        if self._verbose:
             print("Root Connection Successful")
 
     def parse_raw_response(self, raw_response:str):
@@ -116,7 +112,7 @@ class AtRootConnection(AtConnection):
                 # Connect will only throw an AtException if authentication fails. Root connections do not require authentication.
                 raise AtException(f"Root Connection failed - {e}")
 
-        response = self.execute_command(atsign.without_prefix())
+        response = self.execute_command(atsign.without_prefix)
 
         if response == "null":
             raise AtException(f"Root lookup returned null for {atsign}")

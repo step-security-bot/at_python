@@ -1,8 +1,11 @@
 from src.common import AtSign
 from src.util.verbbuilder import *
-from src.util import EncryptionUtil, KeysUtil
-from src.common.exception import AtException
-from src.connections import AtRootConnection, AtSecondaryConnection, Address
+from src.util.encryptionutil import EncryptionUtil
+from src.util.keysutil import KeysUtil
+from src.common.exception.atexception import AtException
+from src.connections.atrootconnection import AtRootConnection
+from src.connections.atsecondaryconnection import AtSecondaryConnection
+from src.connections.address import Address
 
 class AtClient(ABC):
     def __init__(self, atsign:AtSign, root_address:Address=Address("root.atsign.org", 64), secondary_address:Address=None, verbose:bool = False):
@@ -48,7 +51,5 @@ class AtClient(ABC):
         return self.authenticated
     
     def __del__(self):
-        if self.root_connection:
-            self.root_connection.disconnect()
         if self.secondary_connection:
             self.secondary_connection.disconnect()

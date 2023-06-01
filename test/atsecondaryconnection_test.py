@@ -24,7 +24,7 @@ class AtSecondaryConnectionTest(unittest.TestCase):
         try:
             root_connection = AtRootConnection.get_instance(verbose=AtSecondaryConnectionTest.verbose)
             secondary_address = root_connection.find_secondary(AtSign("@27barracuda"))
-            wrong_address = Address(secondary_address.get_host()+"0", secondary_address.get_port())
+            wrong_address = Address(secondary_address.host+"0", secondary_address.port)
             secondary_connection = AtSecondaryConnection(wrong_address, verbose=AtSecondaryConnectionTest.verbose)
             secondary_connection.connect()
             secondary_connection.disconnect()

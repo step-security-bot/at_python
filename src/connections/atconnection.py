@@ -2,7 +2,7 @@ import socket
 import ssl
 from abc import ABC, abstractmethod
 
-from src.common.exception import AtException
+from src.common.exception.atexception import AtException
 
 
 class AtConnection(ABC):

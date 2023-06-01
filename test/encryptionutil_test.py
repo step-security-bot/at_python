@@ -1,7 +1,6 @@
 import unittest, base64
 
 from src.util import EncryptionUtil
-from cryptography.hazmat.primitives import serialization
 
 class EncryptionUtilTest(unittest.TestCase):
 

@@ -1,7 +1,7 @@
 import ssl
 from src.common import AtSign
-from src.common.exception import AtException
-from src.connections import AtConnection
+from src.common.exception.atexception import AtException
+from src.connections.atconnection import AtConnection
 from src.connections.address import Address
 
 

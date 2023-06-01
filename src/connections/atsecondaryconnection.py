@@ -1,5 +1,6 @@
 import ssl
-from src.connections import AtConnection, Address
+from src.connections.atconnection import AtConnection
+from src.connections.address import Address
 
 
 class AtSecondaryConnection(AtConnection):

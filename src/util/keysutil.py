@@ -3,8 +3,8 @@ import json
 import base64
 from typing import Dict, Tuple
 
-from src.common import AtSign
-from src.util import EncryptionUtil
+# from src.common.atsign import AtSign
+from src.util.encryptionutil import EncryptionUtil
 
 
 class KeysUtil:
@@ -19,7 +19,7 @@ class KeysUtil:
     self_encryption_key_name = "selfEncryptionKey"
 
     @staticmethod
-    def load_keys(at_sign: AtSign) -> Dict[str, str]:
+    def load_keys(at_sign: str) -> Dict[str, str]:
         
         file = KeysUtil.get_keys_file(at_sign, KeysUtil.expected_keys_files_location)
         if not os.path.exists(file):

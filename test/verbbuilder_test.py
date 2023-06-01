@@ -1,7 +1,7 @@
 import unittest
 from src.util import FromVerbBuilder, PKAMVerbBuilder
 
-class AtSecondaryConnectionTest(unittest.TestCase):
+class AtVerbBuilderTest(unittest.TestCase):
     verbose = False
 
     def test_from_verb_builder(self):

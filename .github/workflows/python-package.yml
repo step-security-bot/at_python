@@ -5,9 +5,9 @@ name: at client
 
 on:
   push:
-    branches: [ "trunk" ]
+    branches: [ "trunk", "dev" ]
   pull_request:
-    branches: [ "trunk" ]
+    branches: [ "trunk", "dev" ]
 
 jobs:
   build:

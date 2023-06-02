@@ -29,6 +29,12 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Set up AtKeys for test
+      run: |
+        mkdir keys
+        echo "${{secrets.BARRACUDA_ATKEYS}}" > keys/@27barracuda_key.atKeys
+        echo "${{secrets.AMATEUR_ATKEYS}}" > keys/@amateur93_key.atKeys
+        echo "${{secrets.UNIVERSALALOO_ATKEYS}}" > keys/@universal27aloo_key.atKeys
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names

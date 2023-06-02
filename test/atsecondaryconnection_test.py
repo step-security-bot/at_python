@@ -1,4 +1,5 @@
 import unittest
+import socket
 from src.common import AtSign
 from src.connections import AtRootConnection, AtSecondaryConnection, Address
 
@@ -29,7 +30,7 @@ class AtSecondaryConnectionTest(unittest.TestCase):
             secondary_connection.connect()
             secondary_connection.disconnect()
         except Exception as e:
-            self.assertEqual("[Errno 8] nodename nor servname provided, or not known", str(e))
+            self.assertTrue(isinstance(e, socket.gaierror))
 
     def test_multiple_secondary_connections(self):
         """

@@ -55,8 +55,11 @@ class AtConnection(ABC):
         - str: The data read from the socket.
         """
         response = b''
-        data = self._secure_root_socket.read(2048)
-        response += data
+        while True:
+            chunk = self._secure_root_socket.read()  # Receive data in chunks of 1024 bytes
+            response += chunk
+            if chunk == b'@' or b'\n' in chunk:
+                break
         return response.decode()
 
     def is_connected(self):

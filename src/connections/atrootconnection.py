@@ -1,7 +1,8 @@
 import ssl
-from common import AtSign
-from common.exception import AtException
-from atconnection import AtConnection
+from src.common import AtSign
+from src.common.exception.atexception import AtException
+from src.connections.atconnection import AtConnection
+from src.connections.address import Address
 
 
 class AtRootConnection(AtConnection):
@@ -54,17 +55,15 @@ class AtRootConnection(AtConnection):
         if AtRootConnection.__instance is not None:
             raise Exception("Singleton class - use AtRootConnection.get_instance() instead")
         else:
-            self.host = host
-            self.port = port
-            self.context = context
-            self.verbose = verbose
             AtRootConnection.__instance = self
             super().__init__(host, port, context, verbose)
 
     def connect(self):
-        """Establish a connection to the root server."""
+        """
+        Establish a connection to the root server.
+        """
         super().connect()
-        if self.verbose:
+        if self._verbose:
             print("Root Connection Successful")
 
     def parse_raw_response(self, raw_response:str):
@@ -113,12 +112,12 @@ class AtRootConnection(AtConnection):
                 # Connect will only throw an AtException if authentication fails. Root connections do not require authentication.
                 raise AtException(f"Root Connection failed - {e}")
 
-        response = self.execute_command(atsign.without_prefix())
+        response = self.execute_command(atsign.without_prefix)
 
         if response == "null":
             raise AtException(f"Root lookup returned null for {atsign}")
         else:
             try:
-                return response
+                return Address.from_string(response)
             except ValueError as e:
                 raise AtException(f"Received malformed response {response} from lookup of {atsign} on root server")

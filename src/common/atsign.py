@@ -3,13 +3,14 @@ class AtSign:
         if atsign is None or atsign.strip() == "":
             raise ValueError("atSign may not be null or empty")
 
-        self.atsign = self.format_atsign(atsign)
+        self._atsign = self.format_atsign(atsign)
 
-        if self.atsign == "@":
-            raise ValueError(f"'{self.atsign}' is not a valid atSign")
+        if self._atsign == "@":
+            raise ValueError(f"'{self._atsign}' is not a valid atSign")
 
-        self.without_prefix = self.atsign[1:]
+        self._without_prefix_str = self._atsign[1:]
 
+    @property
     def without_prefix(self):
         """
         Returns an atsign without @ prefix
@@ -19,17 +20,17 @@ class AtSign:
         str
             An atsign without prefix (e.g. "@alice " --> "alice").
         """
-        return self.without_prefix
+        return self._without_prefix_str
 
     def __str__(self):
-        return self.atsign
+        return self._atsign
 
     def __eq__(self, other):
         if self is other:
             return True
         if not isinstance(other, AtSign):
             return False
-        return self.atsign == other.atsign
+        return self._atsign == other.atsign
 
     @staticmethod
     def format_atsign(atsign_str):

@@ -40,4 +40,8 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
+        mkdir keys
+        echo '${{secrets.BARRACUDA_ATKEYS}}' > keys/@27barracuda_key.atKeys
+        echo '${{secrets.AMATEUR_ATKEYS}}' > keys/@amateur93_key.atKeys
+        echo '${{secrets.UNIVERSALALOO_ATKEYS}}' > keys/@universal27aloo_key.atKeys
         python -m unittest discover -s test -p '*_test.py' -v

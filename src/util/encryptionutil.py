@@ -9,13 +9,11 @@ from cryptography.hazmat.primitives import hashes
 
 
 class EncryptionUtil:
-    IV = b'\x00' * 16
-
     @staticmethod
-    def aes_encrypt_from_base64(clear_text, key_base64):
+    def aes_encrypt_from_base64(clear_text, key_base64, iv=b'\x00' * 16):
         # clear_text = clear_text.encode('utf-8')
         key = base64.b64decode(key_base64)
-        cipher = Cipher(algorithms.AES(key), modes.CTR(EncryptionUtil.IV), backend=default_backend())
+        cipher = Cipher(algorithms.AES(key), modes.CTR(iv), backend=default_backend())
         encryptor = cipher.encryptor()
         padder = padding.PKCS7(algorithms.AES.block_size).padder()
         padded_plaintext = padder.update(clear_text) + padder.finalize()
@@ -23,10 +21,10 @@ class EncryptionUtil:
         return base64.b64encode(cipher_text).decode()
 
     @staticmethod
-    def aes_decrypt_from_base64(encrypted_text, self_encryption_key):
+    def aes_decrypt_from_base64(encrypted_text, self_encryption_key, iv=b'\x00' * 16):
         cipher_text = base64.b64decode(encrypted_text)
         key = base64.b64decode(self_encryption_key)
-        cipher = Cipher(algorithms.AES(key), modes.CTR(EncryptionUtil.IV), backend=default_backend())
+        cipher = Cipher(algorithms.AES(key), modes.CTR(iv), backend=default_backend())
         decryptor = cipher.decryptor()
         plain_text = decryptor.update(cipher_text) + decryptor.finalize()
 

@@ -86,9 +86,9 @@ class Metadata:
         if self.pub_key_cs:
             s += f":pubKeyCS:{self.pub_key_cs}"
         if self.is_binary:
-            s += f":isBinary:{self.is_binary}"
+            s += f":isBinary:{'true' if self.is_binary else 'false'}"
         if self.is_encrypted:
-            s += f":isEncrypted:{self.is_encrypted}"
+            s += f":isEncrypted:{'true' if self.is_encrypted else 'false'}"
         if self.encoding:
             s += f":encoding:{self.encoding}"
         return s

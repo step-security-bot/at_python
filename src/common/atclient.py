@@ -1,4 +1,6 @@
 import json
+from functools import singledispatch
+
 from src.common import AtSign
 from src.util.verbbuilder import *
 from src.util.encryptionutil import EncryptionUtil
@@ -9,6 +11,7 @@ from src.common.exception.atexception import AtException
 from src.connections.atrootconnection import AtRootConnection
 from src.connections.atsecondaryconnection import AtSecondaryConnection
 from src.connections.address import Address
+from src.common.keys import SharedKey, PrivateHiddenKey, PublicKey, SelfKey
 
 class AtClient(ABC):
     def __init__(self, atsign:AtSign, root_address:Address=Address("root.atsign.org", 64), secondary_address:Address=None, verbose:bool = False):
@@ -73,7 +76,42 @@ class AtClient(ABC):
     
     def is_authenticated(self):
         return self.authenticated
-    
+
+    def put(self, key, value):
+        if isinstance(key, SharedKey):
+            return self._put_shared_key(key, value)
+        elif isinstance(key, SelfKey):
+            return self._put_self_key(key, value)
+        elif isinstance(key, PublicKey):
+            return self._put_public_key(key, value)
+        else:
+            raise NotImplementedError(f"No implementation found for key type: {type(key)}")
+
+    def _put_self_key(self, key: SelfKey, value: str):
+        key.metadata.data_signature = EncryptionUtil.sign_sha256_rsa(value, self.keys[KeysUtil.encryption_private_key_name])
+
+        try:
+            cipher_text = EncryptionUtil.aes_encrypt_from_base64(value, self.keys[KeysUtil.self_encryption_key_name])
+        except Exception as e:
+            raise AtException(f"Failed to encrypt value with self encryption key - {e}")
+        
+        command = UpdateVerbBuilder().with_at_key(key, cipher_text).build()
+        try:
+            return self.secondary_connection.execute_command(command)
+        except Exception as e:
+            raise AtException(f"Failed to execute {command} - {e}")
+
+    def _put_public_key(self, key: PublicKey, value: str):
+        key.metadata.data_signature = EncryptionUtil.sign_sha256_rsa(value, self.keys[KeysUtil.encryption_private_key_name])
+
+        command = UpdateVerbBuilder().with_at_key(key, value).build()
+
+        try:
+            return self.secondary_connection.execute_command(command)
+        except Exception as e:
+            raise AtException(f"Failed to execute {command} - {e}")
+        
+
     def __del__(self):
         if self.secondary_connection:
             self.secondary_connection.disconnect()

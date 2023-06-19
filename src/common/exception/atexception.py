@@ -145,3 +145,15 @@ class AtNewErrorCodeException(AtException):
     """
     def __init__(self, message):
         super().__init__(message)
+
+class AtResponseHandlingException(AtException):
+    def __init__(self, message):
+        super().__init__(message)
+
+class AtEncryptionException(AtException):
+    def __init__(self, message):
+        super().__init__(message)
+
+class AtDecryptionException(AtException):
+    def __init__(self, message):
+        super().__init__(message)

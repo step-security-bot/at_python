@@ -2,6 +2,7 @@ import ssl
 from src.common import AtSign
 from src.common.exception.atexception import AtException
 from src.connections.atconnection import AtConnection
+from src.connections.response import Response
 from src.connections.address import Address
 
 
@@ -84,7 +85,7 @@ class AtRootConnection(AtConnection):
         if raw_response.endswith("@"):
             raw_response = raw_response[:-1]
 
-        return raw_response.strip()
+        return Response().set_raw_data_response(raw_response.strip())
 
     def find_secondary(self, atsign:AtSign):
         """
@@ -112,7 +113,7 @@ class AtRootConnection(AtConnection):
                 # Connect will only throw an AtException if authentication fails. Root connections do not require authentication.
                 raise AtException(f"Root Connection failed - {e}")
 
-        response = self.execute_command(atsign.without_prefix)
+        response = self.execute_command(atsign.without_prefix, False).get_raw_data_response()
 
         if response == "null":
             raise AtException(f"Root lookup returned null for {atsign}")

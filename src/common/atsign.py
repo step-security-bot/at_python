@@ -24,6 +24,9 @@ class AtSign:
 
     def __str__(self):
         return self._atsign
+    
+    def to_string(self):
+        return self._atsign
 
     def __eq__(self, other):
         if self is other:

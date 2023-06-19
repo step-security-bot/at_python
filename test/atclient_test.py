@@ -33,9 +33,16 @@ class AtClientTest(unittest.TestCase):
         atclient = AtClient(atsign, verbose=AtClientTest.verbose)
         sk = SelfKey("test_self_key", atsign)
         response = atclient.put(sk, "test1")
-        print(response)
         self.assertIsNotNone(response)
 
+    def test_put_shared_key(self):
+        """Test Put Function with Shared Key"""
+        shared_by = AtSign("@27barracuda")
+        shared_with = AtSign("@amateur93")
+        atclient = AtClient(shared_by, verbose=AtClientTest.verbose)
+        sk = SharedKey("test_shared_key1", shared_by, shared_with)
+        response = atclient.put(sk, "test1")
+        self.assertIsNotNone(response)
     
     
 if __name__ == '__main__':

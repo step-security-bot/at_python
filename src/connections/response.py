@@ -15,6 +15,7 @@ class Response:
         self.raw_error_response = None
         self.error_code = None
         self.error_text = None
+        return self
 
     def get_raw_error_response(self):
         return self.raw_error_response
@@ -29,6 +30,7 @@ class Response:
         self.error_code = separated_by_hyphen[0].strip()
 
         self.error_text = self.raw_error_response.replace(f"{error_code_segment}:", "").strip()
+        return self
 
     def is_error(self):
         return self.raw_error_response is not None

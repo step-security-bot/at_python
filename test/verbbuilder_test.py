@@ -1,5 +1,5 @@
 import unittest
-from src.util import FromVerbBuilder, PKAMVerbBuilder, ScanVerbBuilder, UpdateVerbBuilder
+from src.util.verbbuilder import *
 from src.common import AtSign
 from src.common.keys import SharedKey, PublicKey, PrivateHiddenKey, SelfKey
 
@@ -108,6 +108,165 @@ class AtVerbBuilderTest(unittest.TestCase):
         sk3.metadata.ttl = 1000 * 60 * 10  # 10 minutes
         command = builder.with_at_key(sk3, "myValue123").build()
         self.assertEqual("update:ttl:600000:isEncrypted:true:@bob:test@bob myValue123", command)
+
+    def test_llookup_verb_builder(self):
+        """
+        Test Llookup Verb Builder.
+        """
+        builder = LlookupVerbBuilder()
+        command = ""
+        alice = "@alice"
+        bob = "@bob"
+
+        # Type.NONE self key
+        command = builder.set_key_name("test").set_shared_by(alice).build() 
+        self.assertEqual("llookup:test@alice", command)
+
+        # Type.METADATA self key
+        command = builder.set_type(LlookupVerbBuilder.Type.METADATA).build()
+        self.assertEqual("llookup:meta:test@alice", command)
+
+        # hidden self key, meta
+        command = builder.set_is_hidden(True).build() 
+        self.assertEqual("llookup:meta:_test@alice", command)
+
+        # Type.ALL public cached key
+        builder = LlookupVerbBuilder().set_shared_by(alice)
+        builder.set_key_name("publickey").set_is_cached(True).set_is_public(True)
+        command = builder.set_type(LlookupVerbBuilder.Type.ALL).build()
+        self.assertEqual("llookup:all:cached:public:publickey@alice", command)
+
+        # no key name
+        with self.assertRaises(ValueError):
+            builder = LlookupVerbBuilder()
+            builder.set_shared_by(alice).build()
+
+        # no shared by
+        with self.assertRaises(ValueError):
+            builder = LlookupVerbBuilder()
+            builder.set_key_name("test").build()
+
+        # no key name and no shared by
+        with self.assertRaises(ValueError):
+            builder = LlookupVerbBuilder().build()
+
+        # with public key
+        builder = LlookupVerbBuilder()
+        pk = PublicKey("publickey", bob)
+        command = builder.with_at_key(pk, LlookupVerbBuilder.Type.METADATA).build()
+        self.assertEqual("llookup:meta:public:publickey@bob", command)
+
+        # with shared key
+        builder = LlookupVerbBuilder()
+        sk = SharedKey("sharedkey", bob, alice)
+        command = builder.with_at_key(sk, LlookupVerbBuilder.Type.NONE).build()
+        self.assertEqual("llookup:@alice:sharedkey@bob", command)
+
+        # with self key
+        builder = LlookupVerbBuilder()
+        sfk1 = SelfKey("test", bob)
+        command = builder.with_at_key(sfk1, LlookupVerbBuilder.Type.ALL).build()
+        self.assertEqual("llookup:all:test@bob", command)
+
+        # with self key (shared with self)
+        builder = LlookupVerbBuilder()
+        sfk2 = SelfKey("test", bob, bob)
+        command = builder.with_at_key(sfk2, LlookupVerbBuilder.Type.ALL).build()
+        self.assertEqual("llookup:all:@bob:test@bob", command)
+
+        # with cached public key
+        builder = LlookupVerbBuilder()
+        pk2 = PublicKey("publickey", bob)
+        pk2.metadata.is_cached = True
+        command = builder.with_at_key(pk2, LlookupVerbBuilder.Type.ALL).build()
+        self.assertEqual("llookup:all:cached:public:publickey@bob", command)
+
+        # with cached shared key
+        builder = LlookupVerbBuilder()
+        sk2 = SharedKey("sharedkey", bob, alice)
+        sk2.metadata.is_cached = True
+        command = builder.with_at_key(sk2, LlookupVerbBuilder.Type.NONE).build()
+        self.assertEqual("llookup:cached:@alice:sharedkey@bob", command)
+
+    def test_lookup_verb_builder(self):
+        """
+        Test Lookup Verb Builder.
+        """
+        builder = LookupVerbBuilder()
+
+        # Type.NONE
+        command = builder.set_key_name("test").set_shared_with("@alice").build() 
+        self.assertEqual("lookup:test@alice", command)
+
+        # Type.METADATA
+        command = builder.set_type(LookupVerbBuilder.Type.METADATA).build()
+        self.assertEqual("lookup:meta:test@alice", command)
+
+        # Type.ALL
+        command = builder.set_type(LookupVerbBuilder.Type.ALL).build() 
+        self.assertEqual("lookup:all:test@alice", command)
+
+        # no key name
+        with self.assertRaises(ValueError):
+            builder = LookupVerbBuilder().set_shared_with("@alice").build()
+
+        # no shared with
+        with self.assertRaises(ValueError):
+            builder = LookupVerbBuilder().set_key_name("test").build()
+
+        # no key name and no shared with
+        with self.assertRaises(ValueError):
+            builder = LookupVerbBuilder().build()
+
+        # with shared key
+        builder = LookupVerbBuilder()
+        sk = SharedKey("test", AtSign("@sharedby"), AtSign("@sharedwith"))
+        command = builder.with_shared_key(sk, LookupVerbBuilder.Type.METADATA).build()
+        self.assertEqual("lookup:meta:test@sharedwith", command)
+
+    def test_plookup_verb_builder(self):
+        """
+        Test Plookup Verb Builder.
+        """
+        builder = PlookupVerbBuilder()
+
+        # Type.NONE
+        command = builder.set_key_name("publickey").set_shared_by("alice").build()
+        self.assertEqual("plookup:publickey@alice", command)
+
+        # Type.METADATA
+        command = builder.set_type(PlookupVerbBuilder.Type.METADATA).build()
+        self.assertEqual("plookup:meta:publickey@alice", command)
+
+        # Type.ALL
+        command = builder.set_type(PlookupVerbBuilder.Type.ALL).build()
+        self.assertEqual("plookup:all:publickey@alice", command)
+
+        # no key
+        with self.assertRaises(ValueError):
+            builder = PlookupVerbBuilder()
+            builder.set_shared_by("@alice").set_type(PlookupVerbBuilder.Type.ALL).build()
+
+        # no shared by
+        with self.assertRaises(ValueError):
+            builder = PlookupVerbBuilder().set_key_name("publickey").set_type(PlookupVerbBuilder.Type.ALL).build()
+
+        # no key and no shared by
+        with self.assertRaises(ValueError):
+            builder = PlookupVerbBuilder().set_type(PlookupVerbBuilder.Type.ALL).build()
+
+        # with
+        builder = PlookupVerbBuilder()
+        pk = PublicKey("publickey", AtSign("@bob"))
+        command = builder.with_at_key(pk, PlookupVerbBuilder.Type.ALL).build()
+        self.assertEqual("plookup:all:publickey@bob", command)
+
+        # bypasscache true
+        builder = PlookupVerbBuilder()
+        builder.set_key_name("publickey").set_shared_by("alice").set_bypass_cache(True)
+        command = builder.set_type(PlookupVerbBuilder.Type.ALL).build()
+        self.assertEqual("plookup:bypassCache:true:all:publickey@alice", command)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -65,6 +65,35 @@ class Metadata:
         metadata.pub_key_cs = data.get('pubKeyCS')
         metadata.encoding = data.get('encoding')
         return metadata
+    
+    @staticmethod
+    def from_dict(data_dict):
+        metadata = Metadata()
+        metadata.ttl = data_dict.get('ttl', 0)
+        metadata.ttb = data_dict.get('ttb', 0)
+        metadata.ttr = data_dict.get('ttr', 0)
+        metadata.ccd = data_dict.get('ccd', False)
+        metadata.created_by = data_dict.get('createdBy')
+        metadata.updated_by = data_dict.get('updatedBy')
+        metadata.available_at = Metadata.parse_datetime(data_dict.get('availableAt'))
+        metadata.expires_at = Metadata.parse_datetime(data_dict.get('expiresAt'))
+        metadata.refresh_at = Metadata.parse_datetime(data_dict.get('refreshAt'))
+        metadata.created_at = Metadata.parse_datetime(data_dict.get('createdAt'))
+        metadata.updated_at = Metadata.parse_datetime(data_dict.get('updatedAt'))
+        metadata.status = data_dict.get('status')
+        metadata.version = data_dict.get('version', 0)
+        metadata.data_signature = data_dict.get('dataSignature')
+        metadata.shared_key_status = data_dict.get('sharedKeyStatus')
+        metadata.is_public = data_dict.get('isPublic', False)
+        metadata.is_encrypted = data_dict.get('isEncrypted', True)
+        metadata.is_hidden = data_dict.get('isHidden', False)
+        metadata.namespace_aware = data_dict.get('namespaceAware', True)
+        metadata.is_binary = data_dict.get('isBinary', False)
+        metadata.is_cached = data_dict.get('isCached', False)
+        metadata.shared_key_enc = data_dict.get('sharedKeyEnc')
+        metadata.pub_key_cs = data_dict.get('pubKeyCS')
+        metadata.encoding = data_dict.get('encoding')
+        return metadata
 
 
     def __str__(self):

@@ -97,13 +97,13 @@ class AtClient(ABC):
     def create_shared_encryption_key(self, shared_key: SharedKey):
         their_public_encryption_key = self.get_public_encryption_key(shared_key.shared_with)
         if their_public_encryption_key is None:
-            raise AtKeyNotFoundException(" public key " + shared_key.shared_with.to_string() + " not found but service is running - maybe that AtSign has not yet been onboarded")
+            raise AtKeyNotFoundException(f" public key {shared_key.shared_with.to_string()} not found but service is running - maybe that AtSign has not yet been onboarded")
 
         aes_key = ""
         try:
             aes_key = EncryptionUtil.generate_aes_key_base64()
         except Exception as e:
-            raise AtEncryptionException("Failed to generate AES key for sharing with " + shared_key.shared_with) from e
+            raise AtEncryptionException(f"Failed to generate AES key for sharing with {shared_key.shared_with}")
 
         step = ""
         try:
@@ -114,24 +114,25 @@ class AtClient(ABC):
             encrypted_for_us = EncryptionUtil.rsa_encrypt_to_base64(aes_key, self.keys.get(KeysUtil.encryption_public_key_name))
 
             step = "save encrypted shared key for us"
-            self.secondary_connection.execute_command("update:" + "shared_key." + shared_key.shared_with.without_prefix + shared_key.shared_by.to_string()
-                                    + " " + encrypted_for_us, True)
+            command1 = "update:" + "shared_key." + shared_key.shared_with.without_prefix + shared_key.shared_by.to_string()\
+                                    + " " + encrypted_for_us
+            self.secondary_connection.execute_command(command1, True)
 
             step = "save encrypted shared key for them"
             ttr = 24 * 60 * 60 * 1000
-            self.secondary_connection.execute_command("update:ttr:" + str(ttr) + ":" + shared_key.shared_with.to_string() + ":shared_key" + shared_key.shared_by.to_string()
-                                    + " " + encrypted_for_other, True)
+            command2 = "update:ttr:" + str(ttr) + ":" + shared_key.shared_with.to_string() + ":shared_key" + shared_key.shared_by.to_string()\
+                                    + " " + encrypted_for_other
+            self.secondary_connection.execute_command(command2, True)
         except Exception as e:
             raise AtEncryptionException(f"Failed to {step} - {e}")
 
         return aes_key
     
     def get_encryption_key_shared_by_me(self, key: SharedKey):
-        # lookup:shared_key.bob@alice
         response = None
         to_lookup = "shared_key." + key.shared_with.without_prefix + self.atsign.to_string()
 
-        command = "lookup:" + to_lookup
+        command = "llookup:" + to_lookup
         try:
             response = self.secondary_connection.execute_command(command, False)
         except Exception as e:
@@ -139,17 +140,39 @@ class AtClient(ABC):
 
         if response.is_error():
             if isinstance(response.get_exception(), AtKeyNotFoundException):
-                # No key found - so we should create one
                 return self.create_shared_encryption_key(key)
             else:
                 raise response.get_exception()
 
-        # When we stored it, we encrypted it with our encryption public key;
-        # so we need to decrypt it now with our encryption private key
         try:
-            return EncryptionUtil.rsa_decrypt_from_base64(response, self.keys[KeysUtil.encryption_private_key_name])
+            return EncryptionUtil.rsa_decrypt_from_base64(response.get_raw_data_response(), self.keys[KeysUtil.encryption_private_key_name])
         except Exception as e:
             raise AtDecryptionException(f"Failed to decrypt {to_lookup} - e")
+        
+    def get_encryption_key_shared_by_other(self, shared_key: SharedKey):
+        shared_shared_key_name = shared_key.get_shared_shared_key_name()
+
+        shared_key_value = self.keys.get(shared_shared_key_name)
+        if shared_key_value is not None:
+            return shared_key_value
+
+        lookup_command = "lookup:" + "shared_key" + str(shared_key.shared_by)
+        raw_response = None
+        try:
+            raw_response = self.secondary_connection.execute_command(lookup_command, True)
+        except Exception as e:
+            raise AtSecondaryConnectException(f"Failed to execute {lookup_command} - {e}")
+
+        shared_shared_key_decrypted_value = None
+        try:
+            shared_shared_key_decrypted_value = EncryptionUtil.rsa_decrypt_from_base64(raw_response.get_raw_data_response(), self.keys[KeysUtil.encryption_private_key_name])
+        except Exception as e:
+            raise AtDecryptionException("Failed to decrypt the shared_key with our encryption private key") from e
+
+        self.keys[shared_shared_key_name] =  shared_shared_key_decrypted_value
+
+        return shared_shared_key_decrypted_value
+
 
     def put(self, key, value):
         if isinstance(key, SharedKey):
@@ -206,7 +229,105 @@ class AtClient(ABC):
             return self.secondary_connection.execute_command(command, True).get_raw_data_response()
         except Exception as e:
             raise AtSecondaryConnectException(f"Failed to execute {command} - {e}")
+    
+    def get(self, key):
+        if isinstance(key, SharedKey):
+            return self._get_shared_key(key)
+        elif isinstance(key, SelfKey):
+            return self._get_self_key(key)
+        elif isinstance(key, PublicKey):
+            return self._get_public_key(key)
+        else:
+            raise NotImplementedError(f"No implementation found for key type: {type(key)}")
         
+    def get_lookup_response(self, command: str):
+        try:
+            response = self.secondary_connection.execute_command(command, True)
+        except Exception as e:
+            raise AtSecondaryConnectException(f"Failed to execute {command} - {e}")
+
+        fetched = None
+        try:
+            fetched = json.loads(response.get_raw_data_response())
+        except Exception as e:
+            raise AtResponseHandlingException(f"Failed to parse JSON {response.get_raw_data_response()} - {e}")
+
+        return fetched
+
+        
+    def _get_self_key(self, key: SelfKey):
+        command = LlookupVerbBuilder().with_at_key(key, LlookupVerbBuilder.Type.ALL).build()
+
+        fetched = self.get_lookup_response(command)
+
+        decrypted_value = None
+        encrypted_value = fetched["data"]
+        self_encryption_key = self.keys[KeysUtil.self_encryption_key_name]
+        try:
+            decrypted_value = EncryptionUtil.aes_decrypt_from_base64(encrypted_value, self_encryption_key)
+        except Exception as e:
+            raise AtDecryptionException(f"Failed to {command} - {e}")
+
+        key.metadata = Metadata.squash(Metadata.from_dict(fetched["metaData"]), key.metadata)
+
+        return decrypted_value
+    
+    def _get_public_key(self, key: PublicKey):
+        command = ""
+        if self.atsign == key.shared_by:
+            command = LlookupVerbBuilder().with_at_key(key, LlookupVerbBuilder.Type.ALL).build()
+        else:
+            builder = PlookupVerbBuilder()
+            command = builder.with_at_key(key, PlookupVerbBuilder.Type.ALL).build()
+
+        fetched = self.get_lookup_response(command)
+
+        key.metadata = Metadata.squash(Metadata.from_dict(fetched["metaData"]), key.metadata)
+        key.metadata.is_cached = "cached:" in fetched["key"]
+
+        return fetched["data"]
+    
+    def _get_shared_key(self, key: SharedKey):
+        if key.shared_by == self.atsign:
+            return self._get_shared_by_me_with_other(key)
+        else:
+            return self._get_shared_by_other_with_me(key)
+
+    def _get_shared_by_me_with_other(self, shared_key: SharedKey):
+        share_encryption_key = self.get_encryption_key_shared_by_me(shared_key)
+
+        raw_response = None
+        command = "llookup:" + str(shared_key)
+        try:
+            raw_response = self.secondary_connection.execute_command(command, True)
+        except Exception as e:
+            raise AtSecondaryConnectException(f"Failed to execute {command} - {e}")
+
+        try:
+            return EncryptionUtil.aes_decrypt_from_base64(raw_response.get_raw_data_response(), share_encryption_key)
+        except Exception as e:
+            raise AtDecryptionException(f"Failed to decrypt value with shared encryption key - {e}")
+
+    def _get_shared_by_other_with_me(self, shared_key:SharedKey):
+        what = None
+        share_encryption_key = self.get_encryption_key_shared_by_other(shared_key)
+
+        raw_response = None
+        command = "lookup:" + shared_key.name
+        if shared_key.get_namespace() is not None and shared_key.get_namespace():
+            command += "." + shared_key.get_namespace()
+        command += str(shared_key.shared_by)
+        try:
+            raw_response = self.secondary_connection.execute_command(command, True)
+        except Exception as e:
+            raise AtSecondaryConnectException(f"Failed to execute {command} - {e}")
+
+        what = "decrypt value with shared encryption key"
+        try:
+            return EncryptionUtil.aes_decrypt_from_base64(raw_response.get_raw_data_response(), share_encryption_key)
+        except Exception as e:
+            raise AtDecryptionException(f"Failed to {what} - {e}")
+
 
     def __del__(self):
         if self.secondary_connection:

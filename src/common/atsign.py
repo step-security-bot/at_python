@@ -33,7 +33,7 @@ class AtSign:
             return True
         if not isinstance(other, AtSign):
             return False
-        return self._atsign == other.atsign
+        return self._atsign == other._atsign
 
     @staticmethod
     def format_atsign(atsign_str):

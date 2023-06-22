@@ -40,9 +40,54 @@ class AtClientTest(unittest.TestCase):
         shared_by = AtSign("@27barracuda")
         shared_with = AtSign("@amateur93")
         atclient = AtClient(shared_by, verbose=AtClientTest.verbose)
-        sk = SharedKey("test_shared_key1", shared_by, shared_with)
+        sk = SharedKey("test_shared_key", shared_by, shared_with)
         response = atclient.put(sk, "test1")
         self.assertIsNotNone(response)
+
+        shared_with = AtSign("@27barracuda")
+        shared_by = AtSign("@amateur93")
+        atclient = AtClient(shared_by, verbose=AtClientTest.verbose)
+        sk = SharedKey("test_shared_key2", shared_by, shared_with)
+        response = atclient.put(sk, "test2")
+        self.assertIsNotNone(response)
+        
+
+    def test_get_self_key(self):
+        """Test Get Function with Self Key"""
+        atsign = AtSign("@27barracuda")
+        atclient = AtClient(atsign, verbose=AtClientTest.verbose)
+        sk = SelfKey("test_self_key", atsign)
+        response = atclient.get(sk)
+        self.assertEqual("test1", response)
+
+    def test_get_public_key(self):
+        """Test Get Function with Public Key"""
+        atsign = AtSign("@27barracuda")
+        atclient = AtClient(atsign, verbose=AtClientTest.verbose)
+        pk = PublicKey("test_public_key", atsign)
+        response = atclient.get(pk)
+        self.assertEqual("test1", response)
+
+        amateur_atsign = AtSign("@amateur93")
+        atclient = AtClient(amateur_atsign, verbose=AtClientTest.verbose)
+        response = atclient.get(pk)
+        self.assertEqual("test1", response)
+
+    def test_get_shared_key(self):
+        """Test Get Function with Shared Key"""
+        # Shared by me with other
+        shared_by = AtSign("@27barracuda")
+        shared_with = AtSign("@amateur93")
+        atclient = AtClient(shared_by, verbose=AtClientTest.verbose)
+        sk = SharedKey("test_shared_key1", shared_by, shared_with)
+        response = atclient.get(sk)
+        self.assertEqual("test1", response)
+
+        # Shared by other with me
+        sk = SharedKey("test_shared_key2", shared_with, shared_by)
+        response = atclient.get(sk)
+        self.assertEqual("test2", response)
+
     
     
 if __name__ == '__main__':

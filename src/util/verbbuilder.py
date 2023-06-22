@@ -1,5 +1,6 @@
 from enum import Enum
 from abc import ABC, abstractmethod
+from src.common.atsign import AtSign
 from src.common.metadata import Metadata
 
 class VerbBuilder(ABC):
@@ -214,3 +215,178 @@ class UpdateVerbBuilder(VerbBuilder):
         metadata.pub_key_cs = self.pub_key_cs
         metadata.encoding = self.encoding
         return str(metadata)
+
+class LlookupVerbBuilder:
+    class Type(Enum):
+        NONE = 0 
+        METADATA = 1 
+        ALL = 2 
+
+    def __init__(self):
+        self.key = None 
+        self.shared_by = None 
+        self.shared_with = None 
+        self.is_hidden = None 
+        self.is_public = None 
+        self.is_cached = None 
+        self.type = LlookupVerbBuilder.Type.NONE
+
+    def set_key_name(self, key):
+        self.key = key
+        return self
+
+    def set_shared_by(self, shared_by):
+        self.shared_by = shared_by
+        return self
+
+    def set_shared_with(self, shared_with):
+        self.shared_with = shared_with
+        return self
+
+    def set_is_hidden(self, is_hidden):
+        self.is_hidden = is_hidden
+        return self
+
+    def set_is_public(self, is_public):
+        self.is_public = is_public
+        return self
+
+    def set_is_cached(self, is_cached):
+        self.is_cached = is_cached
+        return self
+
+    def set_type(self, type):
+        self.type = type
+        return self
+
+    def with_at_key(self, at_key, type):
+        self.set_key_name(at_key.name)
+        self.set_shared_by(str(at_key.shared_by))
+        if at_key.shared_with is not None and at_key.shared_with:
+            self.set_shared_with(str(at_key.shared_with))
+        self.set_is_hidden(at_key.metadata.is_hidden)
+        self.set_is_public(at_key.metadata.is_public)
+        self.set_is_cached(at_key.metadata.is_cached)
+        self.set_type(type)
+        return self
+
+    def build(self):
+        if not self.key or not self.shared_by:
+            raise ValueError("key Name and shared By cannot be null or empty")
+
+        s = "llookup:"
+        if self.type == LlookupVerbBuilder.Type.METADATA:
+            s += "meta:"
+        elif self.type == LlookupVerbBuilder.Type.ALL:
+            s += "all:"
+
+        if self.is_hidden:
+            s += "_"
+        if self.is_cached:
+            s += "cached:"
+        if self.is_public:
+            s += "public:"
+        if self.shared_with:
+            s += AtSign.format_atsign(self.shared_with) + ":"
+        s += self.key
+        s += AtSign.format_atsign(self.shared_by)
+
+        return s
+
+class LookupVerbBuilder:
+    class Type(Enum):
+        NONE = 0  
+        METADATA = 1  
+        ALL = 2  
+
+    def __init__(self):
+        self.key = None  
+        self.shared_with = None  
+        self.type = LookupVerbBuilder.Type.NONE
+
+    def set_key_name(self, key):
+        self.key = key
+        return self
+
+    def set_shared_with(self, shared_with):
+        self.shared_with = shared_with
+        return self
+
+    def set_type(self, type):
+        self.type = type
+        return self
+
+    def with_shared_key(self, shared_key, type):
+        self.set_key_name(shared_key.name)
+        self.set_shared_with(str(shared_key.shared_with))
+        self.set_type(type)
+        return self
+
+    def build(self):
+        if not self.key or not self.shared_with:
+            raise ValueError("keyName and sharedWith cannot be null or empty")
+
+        s = "lookup:"
+        if self.type == LookupVerbBuilder.Type.METADATA:
+            s += "meta:"
+        elif self.type == LookupVerbBuilder.Type.ALL:
+            s += "all:"
+
+        s += self.key
+        s += AtSign.format_atsign(self.shared_with)
+
+        return s  
+
+
+class PlookupVerbBuilder:
+    class Type(Enum):
+        NONE = 0  
+        METADATA = 1  
+        ALL = 2  
+
+    def __init__(self):
+        self.key = None  
+        self.shared_by = None  
+        self.bypass_cache = False  
+        self.type = PlookupVerbBuilder.Type.NONE
+
+    def set_key_name(self, key):
+        self.key = key
+        return self
+
+    def set_shared_by(self, shared_by):
+        self.shared_by = shared_by
+        return self
+
+    def set_type(self, type):
+        self.type = type
+        return self
+
+    def set_bypass_cache(self, bypass_cache):
+        self.bypass_cache = bypass_cache
+        return self
+
+    def with_at_key(self, at_key, type):
+        self.set_key_name(at_key.name)
+        self.set_shared_by(str(at_key.shared_by))
+        self.set_type(type)
+        return self
+
+    def build(self):
+        if not self.key or not self.shared_by:
+            raise ValueError("key or sharedBy is null or empty")
+
+        s = "plookup:"
+        if self.bypass_cache:
+            s += "bypassCache:true:"
+
+        if self.type == PlookupVerbBuilder.Type.METADATA:
+            s += "meta:"
+        elif self.type == PlookupVerbBuilder.Type.ALL:
+            s += "all:"
+
+        s += self.key
+        s += AtSign.format_atsign(self.shared_by)
+
+        return s
+

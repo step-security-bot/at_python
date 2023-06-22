@@ -267,6 +267,66 @@ class AtVerbBuilderTest(unittest.TestCase):
         command = builder.set_type(PlookupVerbBuilder.Type.ALL).build()
         self.assertEqual("plookup:bypassCache:true:all:publickey@alice", command)
 
+    def test_delete_verb_builder(self):
+        """
+        Test Delete Verb Builder.
+        """
+        builder = DeleteVerbBuilder()
+
+        # delete a public key
+        command = builder.set_is_public(True).set_key_name("publickey").set_shared_by("@alice").build()
+        self.assertEqual("delete:public:publickey@alice", command)
+
+        # delete a cached public key
+        builder = DeleteVerbBuilder().set_is_cached(True).set_is_public(True)
+        command = builder.set_key_name("publickey").set_shared_by("@bob").build()
+        self.assertEqual("delete:cached:public:publickey@bob", command)
+
+        # delete a self key
+        command = DeleteVerbBuilder().set_key_name("test").set_shared_by("@alice").build()
+        self.assertEqual("delete:test@alice", command)
+
+        # delete a hidden self key
+        command = DeleteVerbBuilder().set_is_hidden(True).set_key_name("test").set_shared_by("@alice").build()
+        self.assertEqual("delete:_test@alice", command)
+
+        # delete a shared key
+        command = DeleteVerbBuilder().set_key_name("test").set_shared_by("@alice").set_shared_with("@bob").build()
+        self.assertEqual("delete:@bob:test@alice", command)
+
+        # delete a cached shared key
+        builder = DeleteVerbBuilder().set_is_cached(True).set_key_name("test")
+        command = builder.set_shared_by("@alice").set_shared_with("@bob").build()
+        self.assertEqual("delete:cached:@bob:test@alice", command)
+
+        # missing key name
+        with self.assertRaises(ValueError):
+            DeleteVerbBuilder().set_shared_by("@alice").set_shared_with("@bob").build()
+
+        # missing shared by
+        with self.assertRaises(ValueError):
+            builder = DeleteVerbBuilder().set_key_name("test").build()
+
+        # missing key name and shared by
+        with self.assertRaises(ValueError):
+            builder = DeleteVerbBuilder().build()
+
+        # with self key
+        self_key = SelfKey("test", AtSign("@alice"))
+        command = DeleteVerbBuilder().with_at_key(self_key).build()
+        self.assertEqual("delete:test@alice", command)
+
+        # with public key
+        pk = PublicKey("publickey", AtSign("@bob"))
+        command = DeleteVerbBuilder().with_at_key(pk).build()
+        self.assertEqual("delete:public:publickey@bob", command)
+
+        # with shared key
+        sk = SharedKey("test", AtSign("@alice"), AtSign("@bob"))
+        command = DeleteVerbBuilder().with_at_key(sk).build()
+        self.assertEqual("delete:@bob:test@alice", command)
+
+
 
 if __name__ == '__main__':
     unittest.main()

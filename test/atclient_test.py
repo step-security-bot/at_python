@@ -88,6 +88,37 @@ class AtClientTest(unittest.TestCase):
         response = atclient.get(sk)
         self.assertEqual("test2", response)
 
+    def test_delete_public_key(self):
+        """Test Delete Function with Public Key"""
+        atsign = AtSign("@27barracuda")
+        atclient = AtClient(atsign, verbose=AtClientTest.verbose)
+        pk = PublicKey("delete_test", atsign)
+        response = atclient.put(pk, "test1")
+
+        response = atclient.delete(pk)
+        self.assertIsNotNone(response)
+
+    def test_delete_self_key(self):
+        """Test Delete Function with Self Key"""
+        atsign = AtSign("@27barracuda")
+        atclient = AtClient(atsign, verbose=AtClientTest.verbose)
+        sk = SelfKey("delete_self_key_test", atsign)
+        response = atclient.put(sk, "test1")
+
+        response = atclient.delete(sk)
+        self.assertIsNotNone(response)
+
+    def test_delete_shared_key(self):
+        """Test Delete Function with Shared Key"""
+        shared_by = AtSign("@27barracuda")
+        shared_with = AtSign("@amateur93")
+        atclient = AtClient(shared_by, verbose=AtClientTest.verbose)
+        sk = SharedKey("delete_shared_key_test", shared_by, shared_with)
+        response = atclient.put(sk, "test1")
+
+        response = atclient.delete(sk)
+        self.assertIsNotNone(response)
+
     
     
 if __name__ == '__main__':

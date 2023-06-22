@@ -328,6 +328,15 @@ class AtClient(ABC):
         except Exception as e:
             raise AtDecryptionException(f"Failed to {what} - {e}")
 
+    def delete(self, key):
+        if isinstance(key, SharedKey) or isinstance(key, SelfKey) or isinstance(key, PublicKey):
+            command = DeleteVerbBuilder().with_at_key(key).build()
+            try:
+                return self.secondary_connection.execute_command(command).get_raw_data_response()
+            except Exception as e:
+                raise AtSecondaryConnectException(f"Failed to execute {command} - {e}")
+        else:
+            raise NotImplementedError(f"No implementation found for key type: {type(key)}")
 
     def __del__(self):
         if self.secondary_connection:

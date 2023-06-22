@@ -390,3 +390,62 @@ class PlookupVerbBuilder:
 
         return s
 
+class DeleteVerbBuilder:
+    def __init__(self):
+        self.key = None
+        self.shared_by = None
+        self.shared_with = ""
+        self.is_hidden = False
+        self.is_public = False
+        self.is_cached = False
+
+    def set_key_name(self, name):
+        self.key = name
+        return self
+
+    def set_shared_by(self, shared_by):
+        self.shared_by = shared_by
+        return self
+
+    def set_shared_with(self, shared_with):
+        self.shared_with = shared_with
+        return self
+
+    def set_is_hidden(self, is_hidden):
+        self.is_hidden = is_hidden
+        return self
+
+    def set_is_public(self, is_public):
+        self.is_public = is_public
+        return self
+
+    def set_is_cached(self, is_cached):
+        self.is_cached = is_cached
+        return self
+
+    def with_at_key(self, at_key):
+        self.set_key_name(at_key.name)
+        self.set_shared_by(str(at_key.shared_by))
+        if at_key.shared_with and not str(at_key.shared_with).strip() == "":
+            self.set_shared_with(str(at_key.shared_with))
+        self.set_is_hidden(at_key.metadata.is_hidden)
+        self.set_is_public(at_key.metadata.is_public)
+        self.set_is_cached(at_key.metadata.is_cached)
+        return self
+
+    def build(self):
+        if self.key is None or self.shared_by is None:
+            raise ValueError("key or shared_by is None. These are required fields")
+
+        s = "delete:"
+        if self.is_hidden:
+            s += "_"
+        if self.is_cached:
+            s += "cached:"
+        if self.is_public:
+            s += "public:"
+        if self.shared_with and not self.shared_with.strip() == "":
+            s += AtSign.format_atsign(self.shared_with) + ":"
+        s += self.key
+        s += AtSign.format_atsign(self.shared_by)
+        return s 

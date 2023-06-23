@@ -212,3 +212,5 @@ ENV/
 /keys
 
 .vscode/
+
+config.ini

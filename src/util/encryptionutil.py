@@ -11,7 +11,7 @@ from cryptography.hazmat.primitives import hashes
 class EncryptionUtil:
     @staticmethod
     def aes_encrypt_from_base64(clear_text, key_base64, iv=b'\x00' * 16):
-        # clear_text = clear_text.encode('utf-8')
+        clear_text = clear_text.encode('utf-8')
         key = base64.b64decode(key_base64)
         cipher = Cipher(algorithms.AES(key), modes.CTR(iv), backend=default_backend())
         encryptor = cipher.encryptor()

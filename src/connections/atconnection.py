@@ -3,6 +3,7 @@ import ssl
 from abc import ABC, abstractmethod
 
 from src.common.exception.atexception import AtException
+from src.connections.response import Response
 
 
 class AtConnection(ABC):
@@ -91,7 +92,7 @@ class AtConnection(ABC):
         self._connected = False
 
     @abstractmethod
-    def parse_raw_response(self, raw_response:str):
+    def parse_raw_response(self, raw_response:str) -> Response:
         """
         Parse the raw response from the server.
 
@@ -100,7 +101,7 @@ class AtConnection(ABC):
         """
         pass
 
-    def execute_command(self, command:str, retry_on_exception:int=0, read_the_response:bool=True):
+    def execute_command(self, command:str, raise_exception=True, retry_on_exception:int=0, read_the_response:bool=True) -> Response:
         """
         Execute a command and retrieve the response from the server.
 
@@ -125,7 +126,11 @@ class AtConnection(ABC):
                 if self._verbose:
                     print(f"\tRCVD: {repr(raw_response)}")
 
-                return self.parse_raw_response(raw_response)
+                response = self.parse_raw_response(raw_response)
+                if response.is_error():
+                    if raise_exception: raise response.get_exception()
+                    
+                return response
             else:
                 return ""
         except Exception as first:
@@ -133,7 +138,7 @@ class AtConnection(ABC):
                 print(f"\tCaught exception {str(first)}: reconnecting")
                 try:
                     self.connect()
-                    return self.execute_command(command, False, True)
+                    return self.execute_command(command, False)
                 except Exception as second:
                     import traceback
                     traceback.print_exc()

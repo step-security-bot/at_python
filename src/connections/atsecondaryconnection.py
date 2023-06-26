@@ -1,6 +1,7 @@
 import ssl
 from src.connections.atconnection import AtConnection
 from src.connections.address import Address
+from src.connections.response import Response
 from src.common.exception import AtException
 
 
@@ -58,10 +59,10 @@ class AtSecondaryConnection(AtConnection):
         error_index = raw_response.find("error:")
         notification_index = raw_response.find("notification")
         if data_index > -1:
-            return raw_response[data_index+len("data:"):].split("\n")[0]
+            return Response().set_raw_data_response(raw_response[data_index+len("data:"):].split("\n")[0])
         elif error_index > -1:
-            raise AtException(raw_response[error_index+len("error:"):])
+            return Response().set_raw_error_response(raw_response[error_index+len("error:"):])
         elif notification_index > -1:
-            return raw_response[notification_index+len("notification"):]
+            return Response().set_raw_data_response(raw_response[notification_index+len("notification"):])
         else:
             raise ValueError(f"Invalid response from server: {raw_response}")

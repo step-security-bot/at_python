@@ -210,3 +210,7 @@ ENV/
 /site
 
 /keys
+
+.vscode/
+
+config.ini

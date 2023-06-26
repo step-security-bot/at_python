@@ -137,6 +137,10 @@ class SharedKey(AtKey):
         shared_key = SharedKey(AtSign(shared_by), AtSign(shared_with))
         shared_key.name = key_name
         return shared_key
+    
+    def get_shared_shared_key_name(self):
+        return f"{self.shared_with}:shared_key{self.shared_by}"
+
 
 
 class PrivateHiddenKey(AtKey):

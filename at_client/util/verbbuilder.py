@@ -1,7 +1,7 @@
 from enum import Enum
 from abc import ABC, abstractmethod
-from src.common.atsign import AtSign
-from src.common.metadata import Metadata
+from ..common.atsign import AtSign
+from ..common.metadata import Metadata
 
 class VerbBuilder(ABC):
     @abstractmethod

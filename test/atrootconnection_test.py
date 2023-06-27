@@ -1,7 +1,7 @@
 import unittest
-from src.common import AtSign
-from src.common.exception import AtException
-from src.connections import AtRootConnection
+from at_client.common import AtSign
+from at_client.common.exception import AtException
+from at_client.connections import AtRootConnection
 
 class AtRootConnectionTest(unittest.TestCase):
     verbose = False

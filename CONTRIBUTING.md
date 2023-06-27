@@ -89,8 +89,15 @@ To prepare your dedicated GitHub repository:
    git push
    ```
 
-1. How to run tests:
+1. How to run tests:<br/>
+   Create `config.ini` file and add your atsigns to run testcases. The structure of the files is as follows:
 
+   ```
+   [test_atsigns]
+   atsign1 = <YOUR-ATSIGN1>
+   atsign2 = <YOUR-ATSIGN2>
+   ```
+   Run all testcases using this command.
    ``` sh
    python -m unittest discover -s test -p '*_test.py' -v
    ```

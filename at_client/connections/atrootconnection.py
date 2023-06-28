@@ -1,9 +1,9 @@
 import ssl
-from src.common import AtSign
-from src.common.exception.atexception import AtException
-from src.connections.atconnection import AtConnection
-from src.connections.response import Response
-from src.connections.address import Address
+from ..common import AtSign
+from ..common.exception.atexception import AtException
+from .atconnection import AtConnection
+from .response import Response
+from .address import Address
 
 
 class AtRootConnection(AtConnection):

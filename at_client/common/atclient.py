@@ -1,17 +1,15 @@
 import json
-from functools import singledispatch
 
-from src.common import AtSign
-from src.util.verbbuilder import *
-from src.util.encryptionutil import EncryptionUtil
-from src.util.keysutil import KeysUtil
-from src.common.keys import Keys
-from src.common.metadata import Metadata
-from src.common.exception.atexception import *
-from src.connections.atrootconnection import AtRootConnection
-from src.connections.atsecondaryconnection import AtSecondaryConnection
-from src.connections.address import Address
-from src.common.keys import SharedKey, PrivateHiddenKey, PublicKey, SelfKey
+from .atsign import AtSign
+from ..util.verbbuilder import *
+from ..util.encryptionutil import EncryptionUtil
+from ..util.keysutil import KeysUtil
+from .metadata import Metadata
+from .exception.atexception import *
+from ..connections.atrootconnection import AtRootConnection
+from ..connections.atsecondaryconnection import AtSecondaryConnection
+from ..connections.address import Address
+from .keys import Keys, SharedKey, PrivateHiddenKey, PublicKey, SelfKey
 
 class AtClient(ABC):
     def __init__(self, atsign:AtSign, root_address:Address=Address("root.atsign.org", 64), secondary_address:Address=None, verbose:bool = False):

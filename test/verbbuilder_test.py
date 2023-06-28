@@ -1,7 +1,7 @@
 import unittest
-from src.util.verbbuilder import *
-from src.common import AtSign
-from src.common.keys import SharedKey, PublicKey, PrivateHiddenKey, SelfKey
+from at_client.util.verbbuilder import *
+from at_client.common import AtSign
+from at_client.common.keys import SharedKey, PublicKey, PrivateHiddenKey, SelfKey
 
 class AtVerbBuilderTest(unittest.TestCase):
     verbose = False

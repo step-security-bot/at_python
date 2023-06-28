@@ -1,6 +1,6 @@
 import unittest, base64
 
-from src.util import EncryptionUtil
+from at_client.util import EncryptionUtil
 
 class EncryptionUtilTest(unittest.TestCase):
 

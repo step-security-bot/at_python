@@ -1,7 +1,7 @@
-from src.common.atsign import AtSign
-from src.common.metadata import Metadata
-from src.common.exception import AtException
-from src.util.keystringutil import KeyStringUtil, KeyType
+from .atsign import AtSign
+from .metadata import Metadata
+from .exception import AtException
+from ..util.keystringutil import KeyStringUtil, KeyType
 
 class Keys:
     @staticmethod

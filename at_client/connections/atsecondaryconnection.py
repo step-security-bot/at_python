@@ -1,8 +1,7 @@
 import ssl
-from src.connections.atconnection import AtConnection
-from src.connections.address import Address
-from src.connections.response import Response
-from src.common.exception import AtException
+from .atconnection import AtConnection
+from .address import Address
+from .response import Response
 
 
 class AtSecondaryConnection(AtConnection):

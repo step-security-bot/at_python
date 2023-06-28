@@ -1,7 +1,7 @@
 import unittest
 import socket
-from src.common import AtSign
-from src.connections import AtRootConnection, AtSecondaryConnection, Address
+from at_client.common import AtSign
+from at_client.connections import AtRootConnection, AtSecondaryConnection, Address
 
 
 class AtSecondaryConnectionTest(unittest.TestCase):

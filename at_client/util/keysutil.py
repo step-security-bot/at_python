@@ -4,7 +4,7 @@ import base64
 from typing import Dict, Tuple
 
 # from src.common.atsign import AtSign
-from src.util.encryptionutil import EncryptionUtil
+from .encryptionutil import EncryptionUtil
 
 
 class KeysUtil:

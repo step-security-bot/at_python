@@ -1,8 +1,8 @@
 import unittest
 from configparser import ConfigParser
 
-from src.common import AtSign
-from src.util import KeysUtil
+from at_client.common import AtSign
+from at_client.util import KeysUtil
 
 class KeysUtilTest(unittest.TestCase):
     atsign1 = ""

@@ -18,10 +18,11 @@ pip install .
 To run the examples save .atKeys file in the '~/.atsign/keys/' directory.
 
 ### 3. Sending and Receiving Data
-There are 3 ways in which data can be sent to at server.
+There are 3 ways in which data can be sent and received from at server.
 1. Using PublicKey
     ```python
-    from at_client.common import AtSign, AtClient
+    from at_client import AtClient
+    from at_client.common import AtSign
     from at_client.common.keys import PublicKey
 
     atsign = AtSign("@bob")
@@ -44,7 +45,8 @@ There are 3 ways in which data can be sent to at server.
 
 2. Using SelfKey
     ```python
-    from at_client.common import AtSign, AtClient
+    from at_client import AtClient
+    from at_client.common import AtSign
     from at_client.common.keys import SelfKey
 
     atsign = AtSign("@bob")
@@ -67,7 +69,8 @@ There are 3 ways in which data can be sent to at server.
 
 3. Using SharedKey
     ```python
-    from at_client.common import AtSign, AtClient
+    from at_client import AtClient
+    from at_client.common import AtSign
     from at_client.common.keys import SharedKey
 
     bob = AtSign("@bob")

@@ -30,6 +30,17 @@ class PKAMVerbBuilder(VerbBuilder):
 
     def build(self):
         return f"pkam:{self.digest}"
+    
+class CRAMVerbBuilder(VerbBuilder):
+    def __init__(self):
+        self.digest = ""
+
+    def set_digest(self, digest):
+        self.digest = digest
+        return self
+
+    def build(self):
+        return f"cram:{self.digest}"
 
 
 class ScanVerbBuilder(VerbBuilder):

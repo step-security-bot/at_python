@@ -1,3 +1,4 @@
+import asyncio
 import socket
 import ssl
 from abc import ABC, abstractmethod
@@ -77,10 +78,16 @@ class AtConnection(ABC):
         Establish a connection to the server. Throws IOException
         """
         if not self._connected:
+            self._socket.settimeout(None) 
             self._socket.connect(self._addr_info)
             self._secure_root_socket = self._context.wrap_socket(
                 self._socket, server_hostname=self._host, do_handshake_on_connect=True
             )
+            
+            self._stream_reader = asyncio.StreamReader()
+            stream_reader_protocol = asyncio.StreamReaderProtocol(self._stream_reader)
+            stream_reader_protocol.connection_made(self._secure_root_socket)
+            
             self._connected = True
             self.read()
 

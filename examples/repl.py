@@ -10,7 +10,8 @@ sys.path.append(f"{base_dir}/src/common")
 sys.path.append(f"{base_dir}/src/connections")
 sys.path.append(f"{base_dir}/src/util")
 
-from at_client.common import AtSign, AtClient
+from at_client import AtClient
+from at_client.common import AtSign
 from at_client.common.keys import Keys, SharedKey
 from at_client.util.keystringutil import KeyStringUtil, KeyType
 

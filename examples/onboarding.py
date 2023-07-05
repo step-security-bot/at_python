@@ -10,22 +10,28 @@ sys.path.append(f"{base_dir}/at_client/common")
 sys.path.append(f"{base_dir}/at_client/connections")
 sys.path.append(f"{base_dir}/at_client/util")
 
-import sys
 import time
+from argparse import ArgumentParser
 from at_client.connections import Address, AtRootConnection, AtSecondaryConnection
 from at_client.exception import AtException, AtSecondaryNotFoundException
 from at_client.common import AtSign
 from at_client.util import AuthUtil, OnboardingUtil, KeysUtil
 
 
-def main():
-    if len(sys.argv) != 4:
-        print("Usage: Onboard <rootUrl> <atSign> <cramSecret>")
+def main(args):
+    parser = ArgumentParser()
+    parser.add_argument("-r", "--url", help="root url of the server", default="root.atsign.org:64")
+    parser.add_argument("-a", "--atsign", help="atsign to be activated")
+    parser.add_argument("-c", "--secret", help="cram secret to activate an atsign")
+    args = parser.parse_args(args)
+    
+    if not args.atsign and not args.secret:
+        parser.print_help()
         sys.exit(1)
 
-    root_url = sys.argv[1]  # e.g. "root.atsign.org:64";
-    atsign = AtSign(sys.argv[2])  # e.g. "@alice";
-    cram_secret = sys.argv[3]
+    root_url = args.url  # e.g. "root.atsign.org:64";
+    atsign = AtSign(args.atsign)  # e.g. "@alice";
+    cram_secret = args.secret
 
     print("Looking up secondary server address for", atsign)
     try:
@@ -104,4 +110,4 @@ def retry_secondary_connection(address, atsign):
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

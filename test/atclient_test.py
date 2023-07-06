@@ -1,8 +1,9 @@
 import unittest
 from configparser import ConfigParser
 
-from at_client.common import AtSign, AtClient
-from at_client.common.keys import PublicKey, SelfKey, SharedKey, PrivateHiddenKey
+from at_client import AtClient
+from at_client.common import AtSign
+from at_client.common.keys import PublicKey, SelfKey, SharedKey
 
 class AtClientTest(unittest.TestCase):
     verbose = False

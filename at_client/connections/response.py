@@ -1,4 +1,4 @@
-from ..common.exception import *
+from ..exception import *
 
 class Response:
     def __init__(self):

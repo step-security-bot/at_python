@@ -3,7 +3,7 @@ import socket
 import ssl
 from abc import ABC, abstractmethod
 
-from ..common.exception.atexception import AtException
+from ..exception.atexception import AtException
 from .response import Response
 
 

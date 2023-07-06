@@ -1,15 +1,16 @@
 import json
 
-from .atsign import AtSign
-from ..util.verbbuilder import *
-from ..util.encryptionutil import EncryptionUtil
-from ..util.keysutil import KeysUtil
-from .metadata import Metadata
+from .common.atsign import AtSign
+from .util.verbbuilder import *
+from .util.encryptionutil import EncryptionUtil
+from .util.keysutil import KeysUtil
+from .common.metadata import Metadata
 from .exception.atexception import *
-from ..connections.atrootconnection import AtRootConnection
-from ..connections.atsecondaryconnection import AtSecondaryConnection
-from ..connections.address import Address
-from .keys import Keys, SharedKey, PrivateHiddenKey, PublicKey, SelfKey
+from .connections.atrootconnection import AtRootConnection
+from .connections.atsecondaryconnection import AtSecondaryConnection
+from .connections.address import Address
+from .common.keys import Keys, SharedKey, PrivateHiddenKey, PublicKey, SelfKey
+from .util.authutil import AuthUtil
 
 class AtClient(ABC):
     def __init__(self, atsign:AtSign, root_address:Address=Address("root.atsign.org", 64), secondary_address:Address=None, verbose:bool = False):
@@ -23,24 +24,8 @@ class AtClient(ABC):
             secondary_address = self.root_connection.find_secondary(atsign)
         self.secondary_connection = AtSecondaryConnection(secondary_address, verbose=verbose)
         self.secondary_connection.connect()
-        self.authenticated = self.pkam_authenticate()
-
-    def pkam_authenticate(self):
-        command = FromVerbBuilder().set_shared_by(self.atsign).build()
-        from_response = self.secondary_connection.execute_command(command).get_raw_data_response()
-
-        try:
-            signature = EncryptionUtil.sign_sha256_rsa(from_response, self.keys[KeysUtil.pkam_private_key_name])
-        except:
-            raise Exception("Failed to create SHA256 signature")
-
-        command = PKAMVerbBuilder().set_digest(signature).build()
-        pkam_response = self.secondary_connection.execute_command(command).get_raw_data_response()
-
-        if self.verbose:
-            print("Authentication Successful")
-
-        return True
+        AuthUtil.authenticate_with_pkam(self.secondary_connection, self.atsign, self.keys)
+        self.authenticated = True
     
     def get_at_keys(self, regex, fetch_metadata):
         scan_command = ScanVerbBuilder().set_regex(regex).set_show_hidden(True).build()

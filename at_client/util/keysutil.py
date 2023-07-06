@@ -1,9 +1,7 @@
 import os
 import json
-import base64
-from typing import Dict, Tuple
+from typing import Dict
 
-# from src.common.atsign import AtSign
 from .encryptionutil import EncryptionUtil
 
 
@@ -19,7 +17,27 @@ class KeysUtil:
     self_encryption_key_name = "selfEncryptionKey"
 
     @staticmethod
-    def load_keys(at_sign: str) -> Dict[str, str]:
+    def save_keys(at_sign, keys):
+        expected_keys_directory = os.path.dirname(KeysUtil.expected_keys_files_location)
+        os.makedirs(expected_keys_directory, exist_ok=True)
+        file_path = KeysUtil.get_keys_file(at_sign, KeysUtil.expected_keys_files_location)
+        print(f"Saving keys to {file_path}")
+
+        self_encryption_key = keys[KeysUtil.self_encryption_key_name]
+        encrypted_keys = {
+            KeysUtil.self_encryption_key_name: self_encryption_key,
+            KeysUtil.pkam_public_key_name: EncryptionUtil.aes_encrypt_from_base64(keys[KeysUtil.pkam_public_key_name], self_encryption_key),
+            KeysUtil.pkam_private_key_name: EncryptionUtil.aes_encrypt_from_base64(keys[KeysUtil.pkam_private_key_name], self_encryption_key),
+            KeysUtil.encryption_public_key_name: EncryptionUtil.aes_encrypt_from_base64(keys[KeysUtil.encryption_public_key_name], self_encryption_key),
+            KeysUtil.encryption_private_key_name: EncryptionUtil.aes_encrypt_from_base64(keys[KeysUtil.encryption_private_key_name], self_encryption_key),
+        }
+
+        json_data = json.dumps(encrypted_keys, indent=4)
+        with open(file_path, "w") as f:
+            f.write(json_data)
+
+    @staticmethod
+    def load_keys(at_sign: str):
         
         file = KeysUtil.get_keys_file(at_sign, KeysUtil.expected_keys_files_location)
         if not os.path.exists(file):
@@ -43,5 +61,5 @@ class KeysUtil:
         return keys
 
     @staticmethod
-    def get_keys_file(at_sign: str, folder_to_look_in: str) -> str:
+    def get_keys_file(at_sign, folder_to_look_in):
         return os.path.join(folder_to_look_in, "{}{}".format(at_sign, KeysUtil.keys_file_suffix))

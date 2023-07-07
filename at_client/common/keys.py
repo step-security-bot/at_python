@@ -1,6 +1,6 @@
 from .atsign import AtSign
 from .metadata import Metadata
-from .exception import AtException
+from ..exception import AtException
 from ..util.keystringutil import KeyStringUtil, KeyType
 
 class Keys:

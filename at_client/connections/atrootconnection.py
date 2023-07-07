@@ -1,6 +1,6 @@
 import ssl
 from ..common import AtSign
-from ..common.exception.atexception import AtException
+from ..exception.atexception import AtException
 from .atconnection import AtConnection
 from .response import Response
 from .address import Address

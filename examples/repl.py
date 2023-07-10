@@ -1,4 +1,6 @@
 import os, sys
+from queue import Empty
+import threading
 
 if os.path.basename(os.getcwd()) == "examples":
     base_dir = ".."
@@ -6,14 +8,16 @@ else:
     base_dir = "."
 
 sys.path.append(base_dir)
-sys.path.append(f"{base_dir}/src/common")
-sys.path.append(f"{base_dir}/src/connections")
-sys.path.append(f"{base_dir}/src/util")
+sys.path.append(f"{base_dir}/at_client/common")
+sys.path.append(f"{base_dir}/at_client/connections")
+sys.path.append(f"{base_dir}/at_client/util")
 
 from at_client import AtClient
 from at_client.common import AtSign
 from at_client.common.keys import Keys, SharedKey
 from at_client.util.keystringutil import KeyStringUtil, KeyType
+from at_client.connections.notification.atevents import AtEvent, AtEventType
+from at_client.util.atconstants import *
 
 def print_help_instructions():
     print()
@@ -38,7 +42,20 @@ def print_help_instructions():
     print("  NOTE: put, get, and delete will append the current atSign to the atKeyName if not supplied")
     print()
 
+
+def handle_event(queue):
+    while True:
+        try:
+            at_event = queue.get(block=False)
+            event_type = at_event.event_type
+            event_data = at_event.event_data
+            print("\t  => " + " REPL received event: " + str(event_type) + "\n\t\t\t" + str(event_data) + "\n")
+            # TODO: Manage events and decrypt notifications
+        except Empty:
+            pass
+    
 def main():
+        
     atSignStr = 'NOT SET'
     
     while True:
@@ -56,6 +73,11 @@ def main():
                 print('Connecting to ' + atSignStr + "...")
                 atSign = AtSign(atSignStr)
                 client = AtClient(atsign=atSign, verbose=True)
+                
+                global shared_queue
+                threading.Thread(target=handle_event, args=(shared_queue,)).start()
+                client.start_monitor()
+                
                 command = ''
                 while command!= '/exit':
                     if client.authenticated:

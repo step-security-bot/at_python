@@ -1,4 +1,6 @@
 import json
+import traceback
+
 
 from .common.atsign import AtSign
 from .util.verbbuilder import *
@@ -8,13 +10,18 @@ from .common.metadata import Metadata
 from .exception.atexception import *
 from .connections.atrootconnection import AtRootConnection
 from .connections.atsecondaryconnection import AtSecondaryConnection
+from .connections.atmonitorconnection import AtMonitorConnection
+from .util.atconstants import *
 from .connections.address import Address
 from .common.keys import Keys, SharedKey, PrivateHiddenKey, PublicKey, SelfKey
 from .util.authutil import AuthUtil
 
 class AtClient(ABC):
     def __init__(self, atsign:AtSign, root_address:Address=Address("root.atsign.org", 64), secondary_address:Address=None, verbose:bool = False):
+        global shared_queue
         self.atsign = atsign
+        self.queue = shared_queue
+        self.monitor_connection = None
         self.keys = KeysUtil.load_keys(atsign)
         self.verbose = verbose
         if secondary_address is None:
@@ -22,6 +29,7 @@ class AtClient(ABC):
                                                             port=root_address.port, 
                                                             verbose=verbose)
             secondary_address = self.root_connection.find_secondary(atsign)
+        self.secondary_address = secondary_address
         self.secondary_connection = AtSecondaryConnection(secondary_address, verbose=verbose)
         self.secondary_connection.connect()
         AuthUtil.authenticate_with_pkam(self.secondary_connection, self.atsign, self.keys)
@@ -326,6 +334,43 @@ class AtClient(ABC):
                 raise AtSecondaryConnectException(f"Failed to execute {command} - {e}")
         else:
             raise NotImplementedError(f"No implementation found for key type: {type(key)}")
+
+    def start_monitor(self):
+        global should_be_running_lock
+        what = ""
+        try:
+            if self.monitor_connection == None:
+                what = "construct an AtMonitorConnection"
+                self.monitor_connection = AtMonitorConnection(queue=self.queue, atsign=self.atsign, address=self.secondary_address, verbose=True)
+                self.monitor_connection.connect()
+                AuthUtil.authenticate_with_pkam(self.monitor_connection, self.atsign, self.keys)
+            should_be_running_lock.acquire(blocking=1)
+            if not self.monitor_connection.running:
+                should_be_running_lock.release()
+                what = "call monitor_connection.start_monitor()"
+                self.monitor_connection.start_monitor()
+            else:
+                should_be_running_lock.release()
+        except Exception as e:
+            print("SEVERE: failed to " + what + " : " + str(e))
+            traceback.print_exc()
+        
+    def stop_monitor(self):
+        global should_be_running_lock
+        what = ""
+        try:
+            if self.monitor_connection == None:
+                return
+            should_be_running_lock.acquire(blocking=1)
+            if not self.monitor_connection.running:
+                should_be_running_lock.release()
+                what = "call monitor_connection.stop_monitor()"
+                self.monitor_connection.stop_monitor()
+            else:
+                should_be_running_lock.release()
+        except Exception as e:
+            print("SEVERE: failed to " + what + " : " + str(e))
+            traceback.print_exc()
 
     def __del__(self):
         if self.secondary_connection:

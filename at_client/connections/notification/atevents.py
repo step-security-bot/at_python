@@ -13,17 +13,7 @@ class AtEventType(Enum):
         DECRYPTED_UPDATE_NOTIFICATION = 8
         USER_DEFINED = 9
 
-class AtEvents:
-    class AtEventListener:
-        def handle_event(self, event_type, event_data):
-            pass
-
-    class AtEventBus:
-        def add_event_listener(self, listener, event_types):
-            pass
-
-        def remove_event_listener(self, listener):
-            pass
-
-        def publish_event(self, event_type, event_data):
-            pass
+class AtEvent:
+    def __init__(self, event_type, event_data):
+        self.event_type = event_type
+        self.event_data = event_data

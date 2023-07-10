@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from at_client.common.metadata import Metadata
-from at_client.util.at_constants import *
+from ...common.metadata import Metadata
+from ...util.atconstants import *
 
 @dataclass
 class AtNotification:

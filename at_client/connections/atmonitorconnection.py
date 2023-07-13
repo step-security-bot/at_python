@@ -213,7 +213,7 @@ class AtMonitorConnection(AtSecondaryConnection):
             
             self.disconnect()
             
-    def connect(self):
+    def _connect(self):
         """
         Establish a connection to the secondary server.
         """

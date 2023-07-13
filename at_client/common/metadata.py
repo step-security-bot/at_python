@@ -33,11 +33,11 @@ class Metadata:
     pub_key_cs: str = None
     encoding: str = None
     
-    enc_key_name: str = None
-    enc_algo: str = None
-    iv_nonce: str = None
-    ske_enc_key_name: str = None
-    ske_enc_algo: str = None
+    # enc_key_name: str = None
+    # enc_algo: str = None
+    # iv_nonce: str = None
+    # ske_enc_key_name: str = None
+    # ske_enc_algo: str = None
 
     def parse_datetime(datetime_str):
         if datetime_str is not None:
@@ -73,11 +73,11 @@ class Metadata:
         metadata.pub_key_cs = data.get('pubKeyCS')
         metadata.encoding = data.get('encoding')
         
-        metadata.encKeyName = data.get(ENCRYPTING_KEY_NAME)
-        metadata.encAlgo = data.get(ENCRYPTING_ALGO)
-        metadata.ivNonce = data.get(IV_OR_NONCE)
-        metadata.skeEncKeyName = data.get(SHARED_KEY_ENCRYPTED_ENCRYPTING_KEY_NAME)
-        metadata.skeEncAlgo = data.get(SHARED_KEY_ENCRYPTED_ENCRYPTING_ALGO)
+        # metadata.encKeyName = data.get(ENCRYPTING_KEY_NAME)
+        # metadata.encAlgo = data.get(ENCRYPTING_ALGO)
+        # metadata.ivNonce = data.get(IV_OR_NONCE)
+        # metadata.skeEncKeyName = data.get(SHARED_KEY_ENCRYPTED_ENCRYPTING_KEY_NAME)
+        # metadata.skeEncAlgo = data.get(SHARED_KEY_ENCRYPTED_ENCRYPTING_ALGO)
         
         return metadata
     

@@ -51,7 +51,6 @@ def handle_event(queue, client):
             event_type = at_event.event_type
             event_data = at_event.event_data
             print("\t  => " + " REPL received event: " + str(event_type) + "\n\t\t\t" + str(event_data) + "\n")
-            # TODO: Manage events and decrypt notifications
             sk = None
             if event_type == AtEventType.DECRYPTED_UPDATE_NOTIFICATION:
                 key = event_data["key"]

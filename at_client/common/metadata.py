@@ -3,8 +3,6 @@ import datetime
 from dateutil.parser import parse
 from dataclasses import dataclass
 
-# from ..util.atconstants import *
-
 
 @dataclass
 class Metadata:
@@ -33,12 +31,6 @@ class Metadata:
     pub_key_cs: str = None
     encoding: str = None
     
-    # enc_key_name: str = None
-    # enc_algo: str = None
-    # iv_nonce: str = None
-    # ske_enc_key_name: str = None
-    # ske_enc_algo: str = None
-
     def parse_datetime(datetime_str):
         if datetime_str is not None:
             return parse(datetime_str)
@@ -73,12 +65,6 @@ class Metadata:
         metadata.pub_key_cs = data.get('pubKeyCS')
         metadata.encoding = data.get('encoding')
         
-        # metadata.encKeyName = data.get(ENCRYPTING_KEY_NAME)
-        # metadata.encAlgo = data.get(ENCRYPTING_ALGO)
-        # metadata.ivNonce = data.get(IV_OR_NONCE)
-        # metadata.skeEncKeyName = data.get(SHARED_KEY_ENCRYPTED_ENCRYPTING_KEY_NAME)
-        # metadata.skeEncAlgo = data.get(SHARED_KEY_ENCRYPTED_ENCRYPTING_ALGO)
-        
         return metadata
     
     @staticmethod
@@ -108,12 +94,6 @@ class Metadata:
         metadata.shared_key_enc = data_dict.get('sharedKeyEnc')
         metadata.pub_key_cs = data_dict.get('pubKeyCS')
         metadata.encoding = data_dict.get('encoding')
-        
-        # metadata.enc_key_name = data_dict.get(ENCRYPTING_KEY_NAME)
-        # metadata.enc_algo = data_dict.get(ENCRYPTING_ALGO)
-        # metadata.iv_nonce = data_dict.get(IV_OR_NONCE)
-        # metadata.ske_enc_key_name = data_dict.get(SHARED_KEY_ENCRYPTED_ENCRYPTING_KEY_NAME)
-        # metadata.ske_enc_algo = data_dict.get(SHARED_KEY_ENCRYPTED_ENCRYPTING_ALGO)
         
         return metadata
 
@@ -171,11 +151,5 @@ class Metadata:
         metadata.shared_key_enc = first_metadata.shared_key_enc if first_metadata.shared_key_enc is not None else second_metadata.shared_key_enc
         metadata.pub_key_cs = first_metadata.pub_key_cs if first_metadata.pub_key_cs is not None else second_metadata.pub_key_cs
         metadata.encoding = first_metadata.encoding if first_metadata.encoding is not None else second_metadata.encoding
-        
-        # metadata.enc_key_name = first_metadata.enc_key_name if first_metadata.enc_key_name is not None else second_metadata.enc_key_name
-        # metadata.enc_algo = first_metadata.enc_algo if first_metadata.enc_algo is not None else second_metadata.enc_algo
-        # metadata.iv_nonce = first_metadata.iv_nonce if first_metadata.iv_nonce is not None else second_metadata.iv_nonce
-        # metadata.ske_enc_key_name = first_metadata.ske_enc_key_name if first_metadata.ske_enc_key_name is not None else second_metadata.ske_enc_key_name
-        # metadata.ske_enc_algo = first_metadata.ske_enc_algo if first_metadata.ske_enc_algo is not None else second_metadata.ske_enc_algo
         
         return metadata

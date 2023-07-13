@@ -123,7 +123,7 @@ class AtMonitorConnection(AtSecondaryConnection):
             
             entered = False
             should_be_running_lock.acquire(blocking=1)
-            while self.should_be_running: # and (self._stream_reader.buffer != bytearray() or first):
+            while self.should_be_running:
                 should_be_running_lock.release()
                 entered = True
                 first = False
@@ -131,7 +131,7 @@ class AtMonitorConnection(AtSecondaryConnection):
                 response = self._stream_reader.readline()
                 if self._verbose and response != b"":
                     print("\tRCVD (MONITOR): " + str(response.decode()))
-                # event_type and map of event data
+                    
                 event_type = AtEventType.NONE
                 event_data = {}
                 what = "parse monitor message"
@@ -195,7 +195,6 @@ class AtMonitorConnection(AtSecondaryConnection):
             if not entered:
                 should_be_running_lock.release()
                 entered = False
-           # should_be_running_lock.release()
         except Exception as e:
             traceback.print_exc()
             should_be_running_lock.acquire(blocking=1)

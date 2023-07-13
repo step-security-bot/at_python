@@ -137,7 +137,7 @@ class SharedKey(AtKey):
             raise AtException("SharedKey.from_string('" + key + "'): key must have structure @bob:foo.bar@alice")
         key_name = split_by_at_sign[0]
         shared_by = split_by_at_sign[1]
-        shared_key = SharedKey(AtSign(shared_by), AtSign(shared_with))
+        shared_key = SharedKey(key_name, AtSign(shared_by), AtSign(shared_with))
         shared_key.name = key_name
         return shared_key
     

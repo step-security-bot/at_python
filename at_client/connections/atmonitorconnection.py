@@ -187,7 +187,7 @@ class AtMonitorConnection(AtSecondaryConnection):
                     event_data["exception"] = str(e)
                     traceback.print_exc()
 
-                at_event = AtEvent(str(event_type), event_data)
+                at_event = AtEvent(event_type, event_data)
                 self.queue.put(at_event)
                 
                 should_be_running_lock.acquire(blocking=1)

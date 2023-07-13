@@ -1,5 +1,5 @@
 import os, sys
-from queue import Empty
+from queue import Queue, Empty
 import threading
 
 if os.path.basename(os.getcwd()) == "examples":
@@ -18,6 +18,8 @@ from at_client.common.keys import Keys, SharedKey
 from at_client.util.keystringutil import KeyStringUtil, KeyType
 from at_client.connections.notification.atevents import AtEvent, AtEventType
 from at_client.util.atconstants import *
+
+shared_queue = Queue()
 
 def print_help_instructions():
     print()
@@ -87,11 +89,12 @@ def main():
             if atSignStr != '' and atSignStr != 'NOT SET':
                 print('Connecting to ' + atSignStr + "...")
                 atSign = AtSign(atSignStr)
-                client = AtClient(atsign=atSign, verbose=True)
                 
                 global shared_queue
+                client = AtClient(atsign=atSign, verbose=True, queue=shared_queue)
+                
                 threading.Thread(target=handle_event, args=(shared_queue,client,)).start()
-                client.start_monitor()
+                threading.Thread(target=client.start_monitor, args=()).start()
                 
                 command = ''
                 while command!= '/exit':

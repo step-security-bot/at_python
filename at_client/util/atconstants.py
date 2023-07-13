@@ -1,10 +1,8 @@
-import queue
 import threading
 
 
 should_be_running_lock = threading.Lock()
 running_lock = threading.Lock()
-shared_queue = queue.Queue()
 
 ENCRYPTING_KEY_NAME = 'encKeyName'
 ENCRYPTING_ALGO = 'encAlgo'

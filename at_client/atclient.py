@@ -1,6 +1,6 @@
 import base64
 import json
-from queue import Empty
+from queue import Empty, Queue
 import time
 import traceback
 
@@ -22,10 +22,9 @@ from .common.keys import Keys, SharedKey, PrivateHiddenKey, PublicKey, SelfKey
 from .util.authutil import AuthUtil
 
 class AtClient(ABC):
-    def __init__(self, atsign:AtSign, root_address:Address=Address("root.atsign.org", 64), secondary_address:Address=None, verbose:bool = False):
-        global shared_queue
+    def __init__(self, atsign:AtSign, root_address:Address=Address("root.atsign.org", 64), secondary_address:Address=None, queue:Queue=None, verbose:bool = False):
         self.atsign = atsign
-        self.queue = shared_queue
+        self.queue = queue
         self.monitor_connection = None
         self.keys = KeysUtil.load_keys(atsign)
         self.verbose = verbose
@@ -345,71 +344,81 @@ class AtClient(ABC):
             self.secondary_connection.disconnect()
 
     def start_monitor(self):
-        global should_be_running_lock
-        what = ""
-        try:
-            if self.monitor_connection == None:
-                what = "construct an AtMonitorConnection"
-                self.monitor_connection = AtMonitorConnection(queue=self.queue, atsign=self.atsign, address=self.secondary_address, verbose=True)
-                self.monitor_connection.connect()
-                AuthUtil.authenticate_with_pkam(self.monitor_connection, self.atsign, self.keys)
-            should_be_running_lock.acquire(blocking=1)
-            if not self.monitor_connection.running:
-                should_be_running_lock.release()
-                what = "call monitor_connection.start_monitor()"
-                self.monitor_connection.start_monitor()
-            else:
-                should_be_running_lock.release()
-        except Exception as e:
-            print("SEVERE: failed to " + what + " : " + str(e))
-            traceback.print_exc()
+        if self.queue != None:
+            global should_be_running_lock
+            what = ""
+            try:
+                if self.monitor_connection == None:
+                    what = "construct an AtMonitorConnection"
+                    self.monitor_connection = AtMonitorConnection(queue=self.queue, atsign=self.atsign, address=self.secondary_address, verbose=True)
+                    self.monitor_connection.connect()
+                    AuthUtil.authenticate_with_pkam(self.monitor_connection, self.atsign, self.keys)
+                should_be_running_lock.acquire(blocking=1)
+                if not self.monitor_connection.running:
+                    should_be_running_lock.release()
+                    what = "call monitor_connection.start_monitor()"
+                    self.monitor_connection.start_monitor()
+                else:
+                    should_be_running_lock.release()
+            except Exception as e:
+                print("SEVERE: failed to " + what + " : " + str(e))
+                traceback.print_exc()
+        else:
+            raise Exception("You must assign a Queue object to the queue paremeter of AtClient class")
         
     def stop_monitor(self):
-        global should_be_running_lock
-        what = ""
-        try:
-            if self.monitor_connection == None:
-                return
-            should_be_running_lock.acquire(blocking=1)
-            if not self.monitor_connection.running:
-                should_be_running_lock.release()
-                what = "call monitor_connection.stop_monitor()"
-                self.monitor_connection.stop_monitor()
-            else:
-                should_be_running_lock.release()
-        except Exception as e:
-            print("SEVERE: failed to " + what + " : " + str(e))
-            traceback.print_exc()
+        if self.queue != None:
+            global should_be_running_lock
+            what = ""
+            try:
+                if self.monitor_connection == None:
+                    return
+                should_be_running_lock.acquire(blocking=1)
+                if not self.monitor_connection.running:
+                    should_be_running_lock.release()
+                    what = "call monitor_connection.stop_monitor()"
+                    self.monitor_connection.stop_monitor()
+                else:
+                    should_be_running_lock.release()
+            except Exception as e:
+                print("SEVERE: failed to " + what + " : " + str(e))
+                traceback.print_exc()
+        else:
+            raise Exception("You must assign a Queue object to the queue paremeter of AtClient class")
 
     def handle_event(self, queue, at_event):
-        try:
-            event_type = at_event.event_type
-            event_data = at_event.event_data
-            
-            if event_type == AtEventType.SHARED_KEY_NOTIFICATION:
-                if event_data["value"] != None:
-                    shared_shared_key_name = event_data["key"]
-                    shared_shared_key_encrypted_value = event_data["value"]
-                    try:
-                        shared_key_decrypted_value = EncryptionUtil.rsa_decrypt_from_base64(shared_shared_key_encrypted_value, self.keys[KeysUtil.encryption_private_key_name])
-                        self.keys[shared_shared_key_name] = shared_key_decrypted_value
-                    except Exception as e:
-                        print(str(time.time()) + ": caught exception " + str(e) + " while decrypting received shared key " + shared_shared_key_name)
-            elif event_type == AtEventType.UPDATE_NOTIFICATION:
-                if event_data["value"] != None:
-                    key = event_data["key"]
-                    encrypted_value = event_data["value"]
-                    ivNonce = event_data["metadata"]["ivNonce"]
-                    try:
-                        encryption_key_shared_by_other = self.get_encryption_key_shared_by_other(SharedKey.from_string(key=key))
-                        decrypted_value = EncryptionUtil.aes_decrypt_from_base64(encrypted_text=encrypted_value.encode(), self_encryption_key=encryption_key_shared_by_other, iv=base64.b64decode(ivNonce))
-                        new_event_data = dict(event_data)
-                        new_event_data["decryptedValue"] = decrypted_value
-                        new_at_event = AtEvent(AtEventType.DECRYPTED_UPDATE_NOTIFICATION, new_event_data)
-                        queue.put(new_at_event)
-                    except Exception as e:
-                        print(str(time.time()) + ": caught exception " + str(e) + " while decrypting received data with key name [" + key + "]")
-        except Empty:
-            pass
+        if self.queue != None:
+            try:
+                event_type = at_event.event_type
+                event_data = at_event.event_data
+                
+                if event_type == AtEventType.SHARED_KEY_NOTIFICATION:
+                    if event_data["value"] != None:
+                        shared_shared_key_name = event_data["key"]
+                        shared_shared_key_encrypted_value = event_data["value"]
+                        try:
+                            shared_key_decrypted_value = EncryptionUtil.rsa_decrypt_from_base64(shared_shared_key_encrypted_value, self.keys[KeysUtil.encryption_private_key_name])
+                            self.keys[shared_shared_key_name] = shared_key_decrypted_value
+                        except Exception as e:
+                            print(str(time.time()) + ": caught exception " + str(e) + " while decrypting received shared key " + shared_shared_key_name)
+                elif event_type == AtEventType.UPDATE_NOTIFICATION:
+                    if event_data["value"] != None:
+                        key = event_data["key"]
+                        encrypted_value = event_data["value"]
+                        ivNonce = event_data["metadata"]["ivNonce"]
+                        try:
+                            encryption_key_shared_by_other = self.get_encryption_key_shared_by_other(SharedKey.from_string(key=key))
+                            decrypted_value = EncryptionUtil.aes_decrypt_from_base64(encrypted_text=encrypted_value.encode(), self_encryption_key=encryption_key_shared_by_other, iv=base64.b64decode(ivNonce))
+                            new_event_data = dict(event_data)
+                            new_event_data["decryptedValue"] = decrypted_value
+                            new_at_event = AtEvent(AtEventType.DECRYPTED_UPDATE_NOTIFICATION, new_event_data)
+                            queue.put(new_at_event)
+                        except Exception as e:
+                            print(str(time.time()) + ": caught exception " + str(e) + " while decrypting received data with key name [" + key + "]")
+            except Empty:
+                pass
+        else:
+            raise Exception("You must assign a Queue object to the queue paremeter of AtClient class")
+        
     
     

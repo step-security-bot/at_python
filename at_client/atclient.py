@@ -1,5 +1,10 @@
+import base64
 import json
+from queue import Empty
+import time
 import traceback
+
+from at_client.connections.notification.atevents import AtEvent, AtEventType
 
 
 from .common.atsign import AtSign
@@ -328,6 +333,10 @@ class AtClient(ABC):
                 raise AtSecondaryConnectException(f"Failed to execute {command} - {e}")
         else:
             raise NotImplementedError(f"No implementation found for key type: {type(key)}")
+    
+    def __del__(self):
+        if self.secondary_connection:
+            self.secondary_connection.disconnect()
 
     def start_monitor(self):
         global should_be_running_lock
@@ -366,6 +375,35 @@ class AtClient(ABC):
             print("SEVERE: failed to " + what + " : " + str(e))
             traceback.print_exc()
 
-    def __del__(self):
-        if self.secondary_connection:
-            self.secondary_connection.disconnect()
+    def handle_event(self, queue, at_event):
+        try:
+            event_type = at_event.event_type
+            event_data = at_event.event_data
+            
+            if event_type == AtEventType.SHARED_KEY_NOTIFICATION:
+                if event_data["value"] != None:
+                    shared_shared_key_name = event_data["key"]
+                    shared_shared_key_encrypted_value = event_data["value"]
+                    try:
+                        shared_key_decrypted_value = EncryptionUtil.rsa_decrypt_from_base64(shared_shared_key_encrypted_value, self.keys[KeysUtil.encryption_private_key_name])
+                        self.keys[shared_shared_key_name] = shared_key_decrypted_value
+                    except Exception as e:
+                        print(str(time.time()) + ": caught exception " + str(e) + " while decrypting received shared key " + shared_shared_key_name)
+            elif event_type == AtEventType.UPDATE_NOTIFICATION:
+                if event_data["value"] != None:
+                    key = event_data["key"]
+                    encrypted_value = event_data["value"]
+                    ivNonce = event_data["metadata"]["ivNonce"]
+                    try:
+                        encryption_key_shared_by_other = self.get_encryption_key_shared_by_other(SharedKey.from_string(key=key))
+                        decrypted_value = EncryptionUtil.aes_decrypt_from_base64(encrypted_text=encrypted_value.encode(), self_encryption_key=encryption_key_shared_by_other, iv=base64.b64decode(ivNonce))
+                        new_event_data = dict(event_data)
+                        new_event_data["decryptedValue"] = decrypted_value
+                        new_at_event = AtEvent(AtEventType.DECRYPTED_UPDATE_NOTIFICATION, new_event_data)
+                        queue.put(new_at_event)
+                    except Exception as e:
+                        print(str(time.time()) + ": caught exception " + str(e) + " while decrypting received data with key name [" + key + "]")
+        except Empty:
+            pass
+    
+    

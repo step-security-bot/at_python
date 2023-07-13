@@ -43,14 +43,30 @@ def print_help_instructions():
     print()
 
 
-def handle_event(queue):
+def handle_event(queue, client):
     while True:
         try:
             at_event = queue.get(block=False)
+            client.handle_event(queue, at_event)
             event_type = at_event.event_type
             event_data = at_event.event_data
             print("\t  => " + " REPL received event: " + str(event_type) + "\n\t\t\t" + str(event_data) + "\n")
             # TODO: Manage events and decrypt notifications
+            sk = None
+            if event_type == AtEventType.DECRYPTED_UPDATE_NOTIFICATION:
+                key = event_data["key"]
+                sk = SharedKey.from_string(key=key)
+                value = event_data["value"]
+                decrypted_value = str(event_data["decryptedValue"])
+                print("  => Notification ==>  Key: [" + str(sk) + "]  ==> EncryptedValue [" + str(value) + "]  ==> DecryptedValue [" + decrypted_value + "]")
+            elif event_type == AtEventType.UPDATE_NOTIFICATION_TEXT:
+                print(str(event_data))
+            elif event_type == AtEventType.UPDATE_NOTIFICATION:
+                try:
+                    sk = SharedKey.from_string(str(event_data["key"]))
+                    
+                except Exception as e:
+                    print("Failed to retrieve " + str(sk) + " : " + str(e))
         except Empty:
             pass
     
@@ -75,7 +91,7 @@ def main():
                 client = AtClient(atsign=atSign, verbose=True)
                 
                 global shared_queue
-                threading.Thread(target=handle_event, args=(shared_queue,)).start()
+                threading.Thread(target=handle_event, args=(shared_queue,client,)).start()
                 client.start_monitor()
                 
                 command = ''

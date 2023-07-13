@@ -94,6 +94,7 @@ There are 3 ways in which data can be sent and received from at server.
     print(response)
 
     ```
+    
 
 ## Open source usage and contributions
 

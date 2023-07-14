@@ -14,7 +14,8 @@ permissions:  # added using https://github.com/step-security/secure-repo
 
 jobs:
   build:
-
+    # Don't run on PRs from a fork or Dependabot as the secrets aren't available
+    if: ${{ github.event.pull_request.head.repo.fork == false && github.actor != 'dependabot[bot]'}}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

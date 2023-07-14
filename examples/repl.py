@@ -1,4 +1,6 @@
 import os, sys
+from queue import Queue, Empty
+import threading
 
 if os.path.basename(os.getcwd()) == "examples":
     base_dir = ".."
@@ -6,14 +8,18 @@ else:
     base_dir = "."
 
 sys.path.append(base_dir)
-sys.path.append(f"{base_dir}/src/common")
-sys.path.append(f"{base_dir}/src/connections")
-sys.path.append(f"{base_dir}/src/util")
+sys.path.append(f"{base_dir}/at_client/common")
+sys.path.append(f"{base_dir}/at_client/connections")
+sys.path.append(f"{base_dir}/at_client/util")
 
 from at_client import AtClient
 from at_client.common import AtSign
 from at_client.common.keys import Keys, SharedKey
 from at_client.util.keystringutil import KeyStringUtil, KeyType
+from at_client.connections.notification.atevents import AtEvent, AtEventType
+from at_client.util.atconstants import *
+
+shared_queue = Queue()
 
 def print_help_instructions():
     print()
@@ -38,7 +44,35 @@ def print_help_instructions():
     print("  NOTE: put, get, and delete will append the current atSign to the atKeyName if not supplied")
     print()
 
+
+def handle_event(queue, client):
+    while True:
+        try:
+            at_event = queue.get(block=False)
+            client.handle_event(queue, at_event)
+            event_type = at_event.event_type
+            event_data = at_event.event_data
+            print("\t  => " + " REPL received event: " + str(event_type) + "\n\t\t\t" + str(event_data) + "\n")
+            sk = None
+            if event_type == AtEventType.DECRYPTED_UPDATE_NOTIFICATION:
+                key = event_data["key"]
+                sk = SharedKey.from_string(key=key)
+                value = event_data["value"]
+                decrypted_value = str(event_data["decryptedValue"])
+                print("  => Notification ==>  Key: [" + str(sk) + "]  ==> EncryptedValue [" + str(value) + "]  ==> DecryptedValue [" + decrypted_value + "]")
+            elif event_type == AtEventType.UPDATE_NOTIFICATION_TEXT:
+                print(str(event_data))
+            elif event_type == AtEventType.UPDATE_NOTIFICATION:
+                try:
+                    sk = SharedKey.from_string(str(event_data["key"]))
+                    
+                except Exception as e:
+                    print("Failed to retrieve " + str(sk) + " : " + str(e))
+        except Empty:
+            pass
+    
 def main():
+        
     atSignStr = 'NOT SET'
     
     while True:
@@ -55,7 +89,13 @@ def main():
             if atSignStr != '' and atSignStr != 'NOT SET':
                 print('Connecting to ' + atSignStr + "...")
                 atSign = AtSign(atSignStr)
-                client = AtClient(atsign=atSign, verbose=True)
+                
+                global shared_queue
+                client = AtClient(atsign=atSign, verbose=True, queue=shared_queue)
+                
+                threading.Thread(target=handle_event, args=(shared_queue,client,)).start()
+                threading.Thread(target=client.start_monitor, args=()).start()
+                
                 command = ''
                 while command!= '/exit':
                     if client.authenticated:

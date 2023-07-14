@@ -1,6 +1,10 @@
+import asyncio
 import socket
 import ssl
 from abc import ABC, abstractmethod
+import traceback
+
+from ..util.socketutil import SocketUtil
 
 from ..exception.atexception import AtException
 from .response import Response
@@ -29,6 +33,7 @@ class AtConnection(ABC):
         self._secure_root_socket = None
         self._verbose = verbose
         self._connected = False
+        self.monitor_connection = None
 
     def __str__(self):
         """
@@ -77,10 +82,15 @@ class AtConnection(ABC):
         Establish a connection to the server. Throws IOException
         """
         if not self._connected:
+            self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self._socket.settimeout(None) 
             self._socket.connect(self._addr_info)
             self._secure_root_socket = self._context.wrap_socket(
                 self._socket, server_hostname=self._host, do_handshake_on_connect=True
             )
+            
+            self._stream_reader = SocketUtil(self._secure_root_socket)
+            
             self._connected = True
             self.read()
 

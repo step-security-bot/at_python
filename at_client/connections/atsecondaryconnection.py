@@ -52,7 +52,6 @@ class AtSecondaryConnection(AtConnection):
             raw_response = raw_response[:-1]
         raw_response = raw_response.strip()
 
-        # return raw_response
         data_index = raw_response.find("data:")
     
         error_index = raw_response.find("error:")

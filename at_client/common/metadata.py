@@ -30,7 +30,7 @@ class Metadata:
     shared_key_enc: str = None
     pub_key_cs: str = None
     encoding: str = None
-
+    
     def parse_datetime(datetime_str):
         if datetime_str is not None:
             return parse(datetime_str)
@@ -64,6 +64,7 @@ class Metadata:
         metadata.shared_key_enc = data.get('sharedKeyEnc')
         metadata.pub_key_cs = data.get('pubKeyCS')
         metadata.encoding = data.get('encoding')
+        
         return metadata
     
     @staticmethod
@@ -93,6 +94,7 @@ class Metadata:
         metadata.shared_key_enc = data_dict.get('sharedKeyEnc')
         metadata.pub_key_cs = data_dict.get('pubKeyCS')
         metadata.encoding = data_dict.get('encoding')
+        
         return metadata
 
 
@@ -120,6 +122,9 @@ class Metadata:
             s += f":isEncrypted:{'true' if self.is_encrypted else 'false'}"
         if self.encoding:
             s += f":encoding:{self.encoding}"
+        
+        # TO?DO: Add new parameters    
+        
         return s
 
     @staticmethod
@@ -146,4 +151,5 @@ class Metadata:
         metadata.shared_key_enc = first_metadata.shared_key_enc if first_metadata.shared_key_enc is not None else second_metadata.shared_key_enc
         metadata.pub_key_cs = first_metadata.pub_key_cs if first_metadata.pub_key_cs is not None else second_metadata.pub_key_cs
         metadata.encoding = first_metadata.encoding if first_metadata.encoding is not None else second_metadata.encoding
+        
         return metadata

@@ -5,6 +5,7 @@ from at_client import AtClient
 from at_client.common import AtSign
 from at_client.common.keys import PublicKey, SelfKey, SharedKey
 from at_client.exception import *
+from test_wrapper import skip_if_dependabot_pr
 
 class AtClientTest(unittest.TestCase):
     verbose = False
@@ -19,12 +20,14 @@ class AtClientTest(unittest.TestCase):
         cls.atsign2 = config.get("test_atsigns", "atsign2", fallback="@amateur93")
         return super().setUpClass()
 
+    @skip_if_dependabot_pr
     def test_atsign_pkam_authenticate(self):
         """Test PKAM Authentication"""
         atsign = AtSign(self.atsign1)
         atclient = AtClient(atsign, verbose=self.verbose)
         self.assertTrue(atclient.is_authenticated())
 
+    @skip_if_dependabot_pr
     def test_get_at_keys(self):
         """Test Scan Verb using get_at_keys"""
 
@@ -36,11 +39,12 @@ class AtClientTest(unittest.TestCase):
 
         # Test Regex functionality
         my_keys = atclient.get_at_keys("test", fetch_metadata=True)
-        self.assertEquals(len(my_keys), 4)
+        self.assertEqual(len(my_keys), 4)
 
         my_keys = atclient.get_at_keys("no_key", fetch_metadata=True)
-        self.assertEquals(len(my_keys), 0)
+        self.assertEqual(len(my_keys), 0)
 
+    @skip_if_dependabot_pr
     def test_put_public_key(self):
         """Test Put Function with Public Key"""
         atsign = AtSign(self.atsign1)
@@ -49,6 +53,7 @@ class AtClientTest(unittest.TestCase):
         response = atclient.put(pk, "test1")
         self.assertIsNotNone(response)
 
+    @skip_if_dependabot_pr
     def test_put_self_key(self):
         """Test Put Function with Self Key"""
         atsign = AtSign(self.atsign1)
@@ -57,6 +62,7 @@ class AtClientTest(unittest.TestCase):
         response = atclient.put(sk, "test1")
         self.assertIsNotNone(response)
 
+    @skip_if_dependabot_pr
     def test_put_shared_key(self):
         """Test Put Function with Shared Key"""
         shared_by = AtSign(self.atsign1)
@@ -81,6 +87,7 @@ class AtClientTest(unittest.TestCase):
             sk = SharedKey("test_shared_key3", shared_with, shared_by)
             response = atclient.put(sk, "test2")
 
+    @skip_if_dependabot_pr
     def test_get_public_encryption_key(self):
         atsign1 = AtSign(self.atsign1)
         atsign2 = AtSign(self.atsign2)
@@ -98,6 +105,7 @@ class AtClientTest(unittest.TestCase):
         key = atclient.get_public_encryption_key(_atsign)
         self.assertIsNone(key)
 
+    @skip_if_dependabot_pr
     def test_create_shared_encryption_key(self):
         atsign1 = AtSign(self.atsign1)
         atsign2 = AtSign(self.atsign2)
@@ -112,6 +120,7 @@ class AtClientTest(unittest.TestCase):
             sk = SharedKey("test_shared_key", atsign1, armadilo_atsign)
             key = atclient.create_shared_encryption_key(sk)
 
+    @skip_if_dependabot_pr
     def test_get_encryption_key_shared_by_me(self):
         atsign1 = AtSign(self.atsign1)
         atsign2 = AtSign(self.atsign2)
@@ -126,6 +135,7 @@ class AtClientTest(unittest.TestCase):
             sk = SharedKey("test_shared_key", atsign1, armadilo_atsign)
             key = atclient.get_encryption_key_shared_by_me(sk)
 
+    @skip_if_dependabot_pr
     def test_get_encryption_key_shared_by_other(self):
         atsign1 = AtSign(self.atsign1)
         atsign2 = AtSign(self.atsign2)
@@ -140,6 +150,7 @@ class AtClientTest(unittest.TestCase):
             sk = SharedKey("test_shared_key", atsign1, armadilo_atsign)
             key = atclient.get_encryption_key_shared_by_other(sk)
 
+    @skip_if_dependabot_pr
     def test_not_implemented_key_exception(self):
         atsign1 = AtSign(self.atsign1)
         atclient = AtClient(atsign1, verbose=self.verbose)
@@ -153,6 +164,7 @@ class AtClientTest(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             atclient.delete(None)
 
+    @skip_if_dependabot_pr
     def test_get_self_key(self):
         """Test Get Function with Self Key"""
         atsign = AtSign(self.atsign1)
@@ -167,6 +179,7 @@ class AtClientTest(unittest.TestCase):
             unknown = SelfKey("unknown", atsign)
             response = atclient.get(unknown)
 
+    @skip_if_dependabot_pr
     def test_get_public_key(self):
         """Test Get Function with Public Key"""
         atsign = AtSign(self.atsign1)
@@ -186,7 +199,7 @@ class AtClientTest(unittest.TestCase):
             unknown_pk = PublicKey("unknown_key", atsign)
             response = atclient.get(unknown_pk)
 
-
+    @skip_if_dependabot_pr
     def test_get_shared_key(self):
         """Test Get Function with Shared Key"""
         # Shared by me with other
@@ -209,6 +222,7 @@ class AtClientTest(unittest.TestCase):
             unknown = SharedKey("unknown", shared_by, shared_with)
             response = atclient.get(unknown)
 
+    @skip_if_dependabot_pr
     def test_delete_public_key(self):
         """Test Delete Function with Public Key"""
         atsign = AtSign(self.atsign1)
@@ -220,6 +234,7 @@ class AtClientTest(unittest.TestCase):
         response = atclient.delete(pk)
         self.assertIsNotNone(response)
 
+    @skip_if_dependabot_pr
     def test_delete_self_key(self):
         """Test Delete Function with Self Key"""
         atsign = AtSign(self.atsign1)
@@ -231,6 +246,7 @@ class AtClientTest(unittest.TestCase):
         response = atclient.delete(sk)
         self.assertIsNotNone(response)
 
+    @skip_if_dependabot_pr
     def test_delete_shared_key(self):
         """Test Delete Function with Shared Key"""
         shared_by = AtSign(self.atsign1)

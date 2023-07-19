@@ -337,7 +337,7 @@ class AtClient(ABC):
         if self.secondary_connection:
             self.secondary_connection.disconnect()
 
-    def start_monitor(self):
+    def start_monitor(self, regex=""):
         if self.queue != None:
             global should_be_running_lock
             what = ""
@@ -351,7 +351,7 @@ class AtClient(ABC):
                 if not self.monitor_connection.running:
                     should_be_running_lock.release()
                     what = "call monitor_connection.start_monitor()"
-                    self.monitor_connection.start_monitor()
+                    self.monitor_connection.start_monitor(regex)
                 else:
                     should_be_running_lock.release()
             except Exception as e:

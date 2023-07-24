@@ -45,4 +45,11 @@ jobs:
         echo '${{secrets.BARRACUDA_ATKEYS}}' > keys/@27barracuda_key.atKeys
         echo '${{secrets.AMATEUR_ATKEYS}}' > keys/@amateur93_key.atKeys
         echo '${{secrets.UNIVERSALALOO_ATKEYS}}' > keys/@universal27aloo_key.atKeys
+        if [[ "$GITHUB_ACTOR" == "dependabot[bot]" ]]; then
+            echo "This is a Dependabot pull request."
+            export DEPENDABOT_PR=1 
+          else
+            echo "This is not a Dependabot pull request."
+            export DEPENDABOT_PR=0
+        fi
         python -m unittest discover -s test -p '*_test.py' -v

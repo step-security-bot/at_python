@@ -117,7 +117,7 @@ class AtMonitorConnection(AtSecondaryConnection):
         what = ""
         first = True
         try:
-            monitor_cmd = "monitor " + regex
+            monitor_cmd = "monitor:" + str(self.last_received_time) + " " + regex
             what = "send monitor command " + monitor_cmd
             self.execute_command(command=monitor_cmd, retry_on_exception=True, read_the_response=False)
             

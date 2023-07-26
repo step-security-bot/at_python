@@ -79,7 +79,7 @@ class AtMonitorConnection(AtSecondaryConnection):
             except Exception as ignore:
                 pass
                 
-    def start_monitor(self):
+    def start_monitor(self, regex):
         self._last_heartbeat_sent_time = self._last_heartbeat_ack_time = TimeUtil.current_time_millis()
         
         should_be_running_lock.acquire(blocking=1)
@@ -100,7 +100,7 @@ class AtMonitorConnection(AtSecondaryConnection):
                     self.running = False
                     running_lock.release()
                     return False
-            self._run()
+            self._run(regex)
         else:
             running_lock.release()
         return True
@@ -113,11 +113,11 @@ class AtMonitorConnection(AtSecondaryConnection):
         self._last_heartbeat_sent_time = self._last_heartbeat_ack_time = TimeUtil.current_time_millis()
         self.disconnect()
         
-    def _run(self):
+    def _run(self, regex):
         what = ""
         first = True
         try:
-            monitor_cmd = "monitor:" + str(self.last_received_time)
+            monitor_cmd = "monitor:" + str(self.last_received_time) + " " + regex
             what = "send monitor command " + monitor_cmd
             self.execute_command(command=monitor_cmd, retry_on_exception=True, read_the_response=False)
             

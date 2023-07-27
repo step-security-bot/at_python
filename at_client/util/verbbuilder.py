@@ -460,3 +460,96 @@ class DeleteVerbBuilder:
         s += self.key
         s += AtSign.format_atsign(self.shared_by)
         return s 
+    
+class OperationEnum(Enum):
+    UPDATE = "update"
+    DELETE = "delete"
+    REMOVE = "remove"
+    #APPEND = "append"
+
+    def getOperationName(self):
+        return self.value.split(".")[-1]
+
+class MessageTypeEnum(Enum):
+    TEXT = "text"
+    KEY = "key"
+    
+    def getMessageType(self):
+        return self.value.split(".")[-1]
+    
+class NotifyVerbBuilder(VerbBuilder):
+    def __init__(self):
+        self.key = None
+        self.shared_by = None
+        self.shared_with = ""
+        self.is_hidden = False
+        self.is_public = False
+        self.is_cached = False
+        self.value = None
+        self.operation = None
+        self.message_type = None
+
+    def set_value(self, value):
+        self.value = value
+        return self
+
+    def set_key_name(self, name):
+        self.key = name
+        return self
+
+    def set_shared_by(self, shared_by):
+        self.shared_by = shared_by
+        return self
+
+    def set_shared_with(self, shared_with):
+        self.shared_with = shared_with
+        return self
+
+    def set_is_hidden(self, is_hidden):
+        self.is_hidden = is_hidden
+        return self
+
+    def set_is_public(self, is_public):
+        self.is_public = is_public
+        return self
+
+    def set_is_cached(self, is_cached):
+        self.is_cached = is_cached
+        return self
+    
+    def set_operation(self, operation):
+        self.operation = OperationEnum(operation)
+        
+    def set_message_type(self, message_type):
+        self.message_type = MessageTypeEnum(message_type)
+
+    def with_at_key(self, at_key, encrypted_value, operation):
+        self.set_key_name(at_key.name)
+        self.set_shared_by(str(at_key.shared_by))
+        if at_key.shared_with and not str(at_key.shared_with).strip() == "":
+            self.set_shared_with(str(at_key.shared_with))
+        self.set_is_hidden(at_key.metadata.is_hidden)
+        self.set_is_public(at_key.metadata.is_public)
+        self.set_is_cached(at_key.metadata.is_cached)
+        self.set_value(encrypted_value)
+        self.operation = OperationEnum(operation)
+        if self.message_type is None:
+            self.message_type = MessageTypeEnum.TEXT
+        return self
+
+    def build(self):
+        if self.key is None or (self.shared_with is None and not self.is_public):
+            raise ValueError("key is None or, you have a public key with no shared_with. These are required fields")
+
+        s = f"notify:"
+        if self.operation is not None:
+            s+= f"{self.operation.getOperationName()}:"
+      
+        if self.shared_with and not self.shared_with.strip() == "":
+            s += AtSign.format_atsign(self.shared_with) + ":"
+        if self.is_public:
+            s += "public:"
+        s += self.key   
+        s += AtSign.format_atsign(self.shared_by) + ":"
+        s += self.value
+        return s 

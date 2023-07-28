@@ -526,8 +526,7 @@ class NotifyVerbBuilder(VerbBuilder):
     def with_at_key(self, at_key, encrypted_value, operation):
         self.set_key_name(at_key.name)
         self.set_shared_by(str(at_key.shared_by))
-        if at_key.shared_with and not str(at_key.shared_with).strip() == "":
-            self.set_shared_with(str(at_key.shared_with))
+        self.set_shared_with(str(at_key.shared_with))
         self.set_is_hidden(at_key.metadata.is_hidden)
         self.set_is_public(at_key.metadata.is_public)
         self.set_is_cached(at_key.metadata.is_cached)
@@ -544,8 +543,9 @@ class NotifyVerbBuilder(VerbBuilder):
         s = f"notify:"
         if self.operation is not None:
             s+= f"{self.operation.getOperationName()}:"
-      
-        if self.shared_with and not self.shared_with.strip() == "":
+        if self.message_type is not None:
+            s+= f"messageType:{self.message_type.getMessageType()}:"
+        if self.shared_with is not None:
             s += AtSign.format_atsign(self.shared_with) + ":"
         if self.is_public:
             s += "public:"

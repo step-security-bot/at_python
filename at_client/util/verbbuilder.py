@@ -482,12 +482,14 @@ class NotifyVerbBuilder(VerbBuilder):
         self.key = None
         self.shared_by = None
         self.shared_with = ""
+        self.namespace = None
         self.is_hidden = False
         self.is_public = False
         self.is_cached = False
         self.value = None
         self.operation = None
         self.message_type = None
+        self.metadata = None
 
     def set_value(self, value):
         self.value = value
@@ -519,9 +521,19 @@ class NotifyVerbBuilder(VerbBuilder):
     
     def set_operation(self, operation):
         self.operation = OperationEnum(operation)
+        return self
+        
+    def set_metadata(self, metadata):
+        self.metadata = metadata
+        return self
         
     def set_message_type(self, message_type):
         self.message_type = MessageTypeEnum(message_type)
+        return self
+    
+    def set_namespace(self, namespace):
+        self.namespace = namespace
+        return self
 
     def with_at_key(self, at_key, encrypted_value, operation):
         self.set_key_name(at_key.name)
@@ -530,26 +542,30 @@ class NotifyVerbBuilder(VerbBuilder):
         self.set_is_hidden(at_key.metadata.is_hidden)
         self.set_is_public(at_key.metadata.is_public)
         self.set_is_cached(at_key.metadata.is_cached)
+        self.set_metadata(at_key.metadata)
         self.set_value(encrypted_value)
+        self.set_namespace(at_key.namespace)
         self.operation = OperationEnum(operation)
         if self.message_type is None:
             self.message_type = MessageTypeEnum.TEXT
         return self
+        
 
     def build(self):
         if self.key is None or (self.shared_with is None and not self.is_public):
             raise ValueError("key is None or, you have a public key with no shared_with. These are required fields")
-
         s = f"notify:"
         if self.operation is not None:
             s+= f"{self.operation.getOperationName()}:"
         if self.message_type is not None:
             s+= f"messageType:{self.message_type.getMessageType()}:"
+        s+= "ttr:-1:"
+        if self.metadata.iv_nonce is not None:
+            s+= f"ivNonce:{self.metadata.iv_nonce}:"
         if self.shared_with is not None:
             s += AtSign.format_atsign(self.shared_with) + ":"
-        if self.is_public:
-            s += "public:"
-        s += self.key   
+        s += self.key
+        s+= self.namespace
         s += AtSign.format_atsign(self.shared_by) + ":"
         s += self.value
         return s 

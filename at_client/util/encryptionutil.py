@@ -1,5 +1,7 @@
 import base64
+import binascii
 import os
+import random
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding, serialization
 from cryptography.hazmat.backends import default_backend
@@ -87,3 +89,33 @@ class EncryptionUtil:
     def public_key_from_base64(s):
         key_bytes = base64.b64decode(s.encode('utf-8'))
         return load_der_public_key(key_bytes)
+    
+    @staticmethod
+    def generate_iv_nonce():
+        return IVNonce().token_bytes()
+
+class IVNonce:
+
+    def _randbytes(self, nbytes):
+        """Generate n random bytes."""
+        # CPython isn't limited to 32 bits:
+        # return random.getrandbits(nbytes * 8).to_bytes(n, 'little')
+        
+        randbytes = bytearray()
+        while nbytes > 0:
+            num_bytes = min(nbytes, 4)  # Generation is limited to 32 bits (4 bytes)
+            randbits = random.getrandbits(num_bytes * 8)
+            randbytes.extend(randbits.to_bytes(num_bytes, 'little'))
+            nbytes -= num_bytes
+        return bytes(randbytes)
+    
+    def token_bytes(self):
+        return self.randbytes
+    
+    def token_hex(self):
+        # check upython compat for decode
+        return binascii.hexlify(self.token_bytes()).decode('ascii') 
+
+    def __init__(self, n:int=16):
+        self.n = n
+        self.randbytes = self._randbytes(n)

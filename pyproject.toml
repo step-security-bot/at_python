@@ -8,14 +8,16 @@ packages = [{include = "at_client"}]
 homepage = "https://github.com/atsign-foundation/at_python"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.8.1"
+pip ="23.2.1"
 cffi = "1.15.1"
 cryptography = "41.0.3"
+flake8 = "6.1.0"
 pycparser = "2.21"
+pytest = "7.4.0"
 python-dateutil = "2.8.2"
+requests = "2.31.0"
 six = "1.16.0"
-requests = "^2.31.0"
-
 
 [build-system]
 requires = ["poetry-core"]

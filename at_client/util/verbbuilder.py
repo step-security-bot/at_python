@@ -1,3 +1,5 @@
+import base64
+import binascii
 from enum import Enum
 from abc import ABC, abstractmethod
 from ..common.atsign import AtSign
@@ -471,8 +473,8 @@ class OperationEnum(Enum):
         return self.value.split(".")[-1]
 
 class MessageTypeEnum(Enum):
-    TEXT = "text"
-    KEY = "key"
+    TEXT = "MessageType.text"
+    KEY = "MessageType.key"
     
     def getMessageType(self):
         return self.value.split(".")[-1]
@@ -547,22 +549,21 @@ class NotifyVerbBuilder(VerbBuilder):
         self.set_namespace(at_key.namespace)
         self.operation = OperationEnum(operation)
         if self.message_type is None:
-            self.message_type = MessageTypeEnum.TEXT
+            self.message_type = MessageTypeEnum.KEY
         return self
         
 
     def build(self):
         if self.key is None or (self.shared_with is None and not self.is_public):
             raise ValueError("key is None or, you have a public key with no shared_with. These are required fields")
-        s = f"notify:"
+        s = f"notify:id:{self.key}:"
         if self.operation is not None:
             s+= f"{self.operation.getOperationName()}:"
         if self.message_type is not None:
-            s+= f"messageType:{self.message_type.getMessageType()}:"
-        s+= "ttr:-1:"
+            s+= f"ttl:300000:ttr:-1:"
         if self.metadata.iv_nonce is not None:
-            s+= f"ivNonce:{self.metadata.iv_nonce}:"
-        if self.shared_with is not None:
+            s+= f"ivNonce:{binascii.b2a_base64(self.metadata.iv_nonce).decode('utf-8')[:-2]}:"
+        if self.shared_with is not None: 
             s += AtSign.format_atsign(self.shared_with) + ":"
         s += self.key
         s+= self.namespace

@@ -18,7 +18,7 @@ from .connections.atsecondaryconnection import AtSecondaryConnection
 from .connections.atmonitorconnection import AtMonitorConnection
 from .util.atconstants import *
 from .connections.address import Address
-from .common.keys import Keys, SharedKey, PrivateHiddenKey, PublicKey, SelfKey
+from .common.keys import AtKey, Keys, SharedKey, PrivateHiddenKey, PublicKey, SelfKey
 from .util.authutil import AuthUtil
 
 class AtClient(ABC):
@@ -420,7 +420,7 @@ class AtClient(ABC):
         else:
             raise Exception("You must assign a Queue object to the queue paremeter of AtClient class")
         
-    def notify(self, at_key, value):
+    def notify(self, at_key : AtKey, value):
         iv = at_key.metadata.iv_nonce
         shared_key = self.get_encryption_key_shared_by_me(at_key)
         encrypted_value = EncryptionUtil.aes_encrypt_from_base64(value, shared_key, iv)

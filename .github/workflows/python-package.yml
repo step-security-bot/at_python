@@ -21,7 +21,7 @@ jobs:
       max-parallel: 1
       fail-fast: false
       matrix:
-        python-version: ["3.8.1", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
 
     steps:
     - name: Checkout at_python
@@ -52,4 +52,4 @@ jobs:
             echo "This is not a Dependabot pull request."
             export DEPENDABOT_PR=0
         fi
-        python -m unittest discover -s test -p '*_test.py' -v
+        python3 -m unittest discover -s test -p '*_test.py' -v

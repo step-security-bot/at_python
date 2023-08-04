@@ -569,5 +569,4 @@ class NotifyVerbBuilder(VerbBuilder):
         s+= self.namespace
         s += AtSign.format_atsign(self.shared_by) + ":"
         s += self.value
-        print(s)
         return s 

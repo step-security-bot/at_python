@@ -558,15 +558,15 @@ class NotifyVerbBuilder(VerbBuilder):
             raise ValueError("key is None or, you have a public key with no shared_with. These are required fields")
         s = f"notify:id:{self.key}:"
         if self.operation is not None:
-            s+= f"{self.operation.getOperationName()}:"
-        if self.message_type is not None:
-            s+= f"ttl:300000:ttr:-1:"
-        if self.metadata.iv_nonce is not None:
-            s+= f"ivNonce:{binascii.b2a_base64(self.metadata.iv_nonce).decode('utf-8')[:-1]}:"
-        if self.shared_with is not None: 
+            s+= f"{self.operation.getOperationName()}"
+        if self.metadata:
+            s+= str(self.metadata) + ":"
+        else:
+            s+= "ttr:-1:"
+        if self.shared_with is not None:
             s += AtSign.format_atsign(self.shared_with) + ":"
         s += self.key
         s+= self.namespace
         s += AtSign.format_atsign(self.shared_by) + ":"
         s += self.value
-        return s 
+        return s

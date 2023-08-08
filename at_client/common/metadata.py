@@ -1,3 +1,4 @@
+import binascii
 import json
 import datetime
 from dateutil.parser import parse
@@ -126,7 +127,7 @@ class Metadata:
         if self.encoding:
             s += f":encoding:{self.encoding}"
         if self.iv_nonce:
-            s += f":ivNonce:{self.iv_nonce}"
+            s += f":ivNonce:{binascii.b2a_base64(self.iv_nonce).decode('utf-8')[:-1]}"
         # TO?DO: Add new parameters    
         
         return s
